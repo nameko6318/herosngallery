@@ -62,23 +62,18 @@
         .list-container { display: flex; flex-direction: column; gap: 24px; }
         .card { background: var(--card-bg); border-radius: var(--border-radius-large); overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; border: 3px solid transparent; cursor: pointer; }
         
-        /* 1. 不敗神話 */
         .card.mode-god { border-image: var(--color-god) 3; box-shadow: 0 0 25px rgba(255, 0, 127, 0.3); }
         .card.mode-god::after { content: "👑 不敗神話"; position: absolute; top: 12px; right: 12px; background: black; color: #fff; font-size: 11px; font-weight: 900; padding: 4px 8px; border-radius: 6px; border: 1px solid #ff007f; }
-        /* 2. 常勝覇者 */
         .card.mode-cool { border-color: var(--color-cool); box-shadow: 0 0 15px rgba(255,204,0,0.3); }
         .card.mode-cool::after { content: "🥇 覇者"; position: absolute; top: 12px; right: 12px; background: var(--color-cool); color: #000; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
-        /* 3. 宿敵互角 */
         .card.mode-draw { border-color: var(--color-draw); }
         .card.mode-draw::after { content: "⚔️ 宿敵"; position: absolute; top: 12px; right: 12px; background: var(--color-draw); color: #fff; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
-        /* 4. 苦戦逆境 */
         .card.mode-struggle { border-color: var(--color-struggle); }
         .card.mode-struggle::after { content: "🩹 苦戦"; position: absolute; top: 12px; right: 12px; background: var(--color-struggle); color: #fff; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
-        /* 5. 地獄奈落 */
         .card.mode-abyss { border-color: #ff3b30; background: #fafafa; filter: saturate(0.6); }
         .card.mode-abyss::after { content: "💀 奈落"; position: absolute; top: 12px; right: 12px; background: #000; color: #ff3b30; font-size: 11px; font-weight: 900; padding: 4px 8px; border-radius: 6px; }
 
-        /* 🎭 演出OFFモードの時の上書きスタイル */
+        /* 🎭 演出OFFモード */
         body.effects-off .card { border-color: transparent !important; border-image: none !important; box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important; filter: none !important; }
         body.effects-off .card::after { display: none !important; }
         body.effects-off .history-card img { filter: none !important; box-shadow: none !important; border-color: #e5e5ea !important; }
@@ -99,32 +94,26 @@
         .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; color: #48484a; }
         .form-control { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #e5e5ea; border-radius: var(--border-radius-small); background: #fafafa; outline: none; }
         
-        /* 複数画像管理UI */
         .image-list-builder { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
         .image-thumb-box { position: relative; aspect-ratio: 1; border: 1px solid #e5e5ea; border-radius: 8px; overflow: hidden; background: #fff; }
         .image-thumb-box img { width: 100%; height: 100%; object-fit: contain; }
         .del-thumb-btn { position: absolute; top: 2px; right: 2px; background: rgba(255,59,48,0.8); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; }
 
-        /* 詳細画面画像スライダー */
         .detail-img-slider { width: 100%; height: 340px; background: #fff; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; border: 1px solid #e5e5ea; position: relative; }
         .detail-img-slider img { width: 100%; height: 100%; object-fit: contain; }
         .slide-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.4); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-weight: bold; font-size: 18px; cursor: pointer; }
 
-        /* 動的戦記フォームの枠 */
         .dynamic-history-row { background: #f2f2f7; padding: 12px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #e5e5ea; }
 
-        /* 戦闘履歴カード(結果ごとのエフェクト) */
         .history-card { background: #fff; padding: 16px; border-radius: 14px; margin-bottom: 16px; border: 2px solid #e5e5ea; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
         .history-title-large { font-size: 32px; font-weight: 900; text-align: center; margin-bottom: 10px; letter-spacing: 1px; }
         .history-card.result-WIN .history-title-large { color: #ffcc00; text-shadow: 0 0 8px rgba(255,204,0,0.4); }
         .history-card.result-LOSE .history-title-large { color: #8e8e93; }
         .history-card.result-DRAW .history-title-large { color: #34c759; }
 
-        /* 履歴画像の見た目変化 */
         .history-img-box { width: 100%; height: 180px; background: #fff; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #e5e5ea; }
-        .history-img-box img { width: 100%; height: 100%; object-fit: contain; transition: all 0.3s; }
+        .history-img-box img { width: 100%; height: 100%; object-fit: contain; }
         
-        /* エフェクト実体 */
         .history-card.result-WIN img { filter: drop-shadow(0 0 8px rgba(255,204,0,0.6)); border-color: #ffcc00; }
         .history-card.result-LOSE img { filter: grayscale(1) contrast(1.2) brightness(0.7); }
         .history-card.result-DRAW img { filter: sepia(0.7) hue-rotate(60deg); }
@@ -154,11 +143,11 @@
                 <span style="font-size:18px; font-weight:900;" id="formTitle">キャラクター登録</span>
                 <button class="btn" onclick="closeModal('formModal')">閉じる</button>
             </div>
-            <form id="zukanForm">
+            <div id="zukanForm">
                 <input type="hidden" id="itemId">
                 
                 <div class="form-group">
-                    <label>キャラクター画像（複数追加可能）</label>
+                    <label>キャラクター画像（複数追加可能・高画質のまま保存）</label>
                     <button type="button" class="btn btn-secondary" style="width:100%; padding:12px; border:1px dashed #ccc;" id="addMainImgBtn">📷 画像を追加する</button>
                     <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="addMainImage(event)">
                     <div id="formImagesContainer" class="image-list-builder"></div>
@@ -166,7 +155,7 @@
 
                 <div class="form-group">
                     <label>名前・二つ名</label>
-                    <input type="text" id="itemTitle" class="form-control" required>
+                    <input type="text" id="itemTitle" class="form-control" placeholder="ファイターの名前">
                 </div>
                 <div class="form-group">
                     <label>テーマ</label>
@@ -195,8 +184,8 @@
                     <div id="formHistoryContainer"></div>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width:100%; padding:16px; margin-top:15px; font-size:16px; font-weight:800;">データに保存</button>
-            </form>
+                <button type="button" id="submitDataBtn" class="btn btn-primary" style="width:100%; padding:16px; margin-top:15px; font-size:16px; font-weight:800;">データに保存</button>
+            </div>
         </div>
     </div>
 
@@ -235,7 +224,7 @@
     </div>
 
     <script>
-        const DB_NAME = "CosfiUltimateDatabase"; // 確実に新規ストアを作るためDB名変更
+        const DB_NAME = "CosfiRawBlobDatabaseV4"; // Blob専用の新規ストレージ空間
         const STORE_NAME = "fighters";
         let db = null;
         let charData = [];
@@ -244,43 +233,38 @@
         let activeDetailImages = []; 
 
         document.addEventListener('DOMContentLoaded', () => {
-            // 演出ON/OFFの初期復元
             try {
                 if(localStorage.getItem('effectsDisabled') === 'true') {
                     document.body.classList.add('effects-off');
                     document.getElementById('effectToggleBtn').textContent = "🎭演出: OFF";
                 }
-            } catch(e) { console.warn(e); }
+            } catch(e) {}
 
-            // イベントの確実なバインディング
             document.getElementById('effectToggleBtn').addEventListener('click', toggleEffects);
             document.getElementById('addFighterBtn').addEventListener('click', openFormModal);
-            document.getElementById('headerTitle').addEventListener('click', () => location.reload());
             document.getElementById('addMainImgBtn').addEventListener('click', () => document.getElementById('fileInput').click());
             document.getElementById('addHistoryRowBtn').addEventListener('click', () => addHistoryRow());
             document.getElementById('slidePrevBtn').addEventListener('click', () => changeSlide(-1));
             document.getElementById('slideNextBtn').addEventListener('click', () => changeSlide(1));
+            document.getElementById('submitDataBtn').addEventListener('click', saveItem);
 
-            // 🖋️ フォームの保存イベントを完全に制御
-            document.getElementById('zukanForm').addEventListener('submit', saveItem);
+            document.getElementById('headerTitle').addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
 
             initDB();
         });
 
-        // 🛑 編集・登録中に誤ってページを閉じたりリロードしようとした場合の警告
         window.addEventListener('beforeunload', (e) => {
-            const isFormOpen = document.getElementById('formModal').classList.contains('active');
-            if (isFormOpen) {
+            if (document.getElementById('formModal').classList.contains('active')) {
                 e.preventDefault();
-                e.returnValue = 'キャラクターの編集データが消えてしまいますが、よろしいですか？';
+                e.returnValue = '編集データが消えてしまいますがよろしいですか？';
             }
         });
 
         function toggleEffects() {
             const isOff = document.body.classList.toggle('effects-off');
-            try {
-                localStorage.setItem('effectsDisabled', isOff);
-            } catch(e) {}
+            try { localStorage.setItem('effectsDisabled', isOff); } catch(e) {}
             document.getElementById('effectToggleBtn').textContent = isOff ? "🎭演出: OFF" : "🎭演出: ON";
         }
 
@@ -293,20 +277,33 @@
                         database.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
                     }
                 };
-                request.onsuccess = (e) => { 
-                    db = e.target.result; 
-                    fetchAll(); 
-                };
-                request.onerror = (e) => { alert("データベースの起動に失敗しました。"); };
-            } catch(e) { alert("IndexedDBへのアクセスがブロックされています。"); }
+                request.onsuccess = (e) => { db = e.target.result; fetchAll(); };
+                request.onerror = (e) => { alert("図鑑データベースの起動に失敗しました。"); };
+            } catch(e) { alert("ブラウザの設定によりデータ保存が禁止されています。"); }
         }
 
+        // 🛠️ 劣化なし画像表示のためのキャッシュ・仮想リンク管理
         function fetchAll() {
             if(!db) return;
             const transaction = db.transaction(STORE_NAME, "readonly");
-            const store = transaction.objectStore(STORE_NAME);
-            store.getAll().onsuccess = (e) => {
+            transaction.objectStore(STORE_NAME).getAll().onsuccess = (e) => {
+                // 古い一時仮想URLをクリーンアップしてメモリを解放
+                charData.forEach(c => {
+                    if(c._cachedUrls) c._cachedUrls.forEach(u => URL.revokeObjectURL(u));
+                    if(c.histories) c.histories.forEach(h => { if(h._cachedUrl) URL.revokeObjectURL(h._cachedUrl); });
+                });
+
                 charData = e.result || [];
+
+                // 高画質生のBlobデータから表示用の超高速仮想リンクを作成
+                charData.forEach(c => {
+                    c._cachedUrls = (c.images || []).map(b => b instanceof Blob ? URL.createObjectURL(b) : b);
+                    if(c.histories) {
+                        c.histories.forEach(h => {
+                            if(h.image instanceof Blob) h._cachedUrl = URL.createObjectURL(h.image);
+                        });
+                    }
+                });
                 renderList();
             };
         }
@@ -333,7 +330,7 @@
                 card.className = `card ${getModeClass(c.wins, c.losses)}`;
                 card.onclick = () => openDetail(c.id);
 
-                const mainImg = (c.images && c.images.length > 0) ? c.images[0] : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23fff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%23ccc">NO IMAGE</text></svg>';
+                const mainImg = (c._cachedUrls && c._cachedUrls.length > 0) ? c._cachedUrls[0] : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23fff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%23ccc">NO IMAGE</text></svg>';
 
                 card.innerHTML = `
                     <div class="card-img-wrapper"><img src="${mainImg}" loading="lazy"></div>
@@ -346,46 +343,26 @@
             });
         }
 
-        function processImageFile(file, callback) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    const max = 1200; // スマホ保存の容量安定化のために少しリサイズ制限を最適化
-                    if(w > h) { if(w > max) { h *= max/w; w = max; } }
-                    else { if(h > max) { w *= max/h; h = max; } }
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    callback(canvas.toDataURL('image/jpeg', 0.75));
-                };
-                img.src = ev.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
+        // 📷 圧縮処理を完全撤廃。生ファイルをそのまま格納
         function addMainImage(e) {
             const file = e.target.files[0];
             if(!file) return;
-            processImageFile(file, (b64) => {
-                currentImages.push(b64);
-                renderFormImages();
-            });
+            
+            const previewUrl = URL.createObjectURL(file);
+            currentImages.push({ blob: file, url: previewUrl });
+            renderFormImages();
             e.target.value = '';
         }
 
         function renderFormImages() {
             const container = document.getElementById('formImagesContainer');
             container.innerHTML = '';
-            currentImages.forEach((src, idx) => {
+            currentImages.forEach((imgObj, idx) => {
                 const div = document.createElement('div');
                 div.className = 'image-thumb-box';
-                div.innerHTML = `
-                    <img src="${src}">
-                    <button type="button" class="del-thumb-btn">✕</button>
-                `;
+                div.innerHTML = `<img src="${imgObj.url}"><button type="button" class="del-thumb-btn">✕</button>`;
                 div.querySelector('.del-thumb-btn').addEventListener('click', () => {
+                    URL.revokeObjectURL(imgObj.url);
                     currentImages.splice(idx, 1);
                     renderFormImages();
                 });
@@ -397,6 +374,9 @@
             const container = document.getElementById('formHistoryContainer');
             const row = document.createElement('div');
             row.className = 'dynamic-history-row';
+            
+            row._blob = data?.image || null;
+            row._previewUrl = data?._cachedUrl || '';
             
             row.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -414,9 +394,8 @@
                     <div style="display:flex; gap:10px; align-items:center;">
                         <button type="button" class="btn btn-secondary history-img-trigger" style="font-size:12px;">📷 履歴画像</button>
                         <input type="file" accept="image/*" class="history-file-input" style="display:none;">
-                        <input type="hidden" class="history-img-base64" value="${data?.image || ''}">
-                        <div class="history-img-preview" style="width:50px; height:50px; background:#fff; border-radius:6px; border:1px solid #ccc; overflow:hidden; display:${data?.image?'block':'none'}">
-                            <img src="${data?.image || ''}" style="width:100%; height:100%; object-fit:contain;">
+                        <div class="history-img-preview" style="width:50px; height:50px; background:#fff; border-radius:6px; border:1px solid #ccc; overflow:hidden; display:${row._previewUrl?'block':'none'}">
+                            <img src="${row._previewUrl}" style="width:100%; height:100%; object-fit:contain;">
                         </div>
                     </div>
                 </div>
@@ -426,72 +405,81 @@
             `;
 
             row.querySelector('.del-row-btn').addEventListener('click', () => row.remove());
-            
             const fileInput = row.querySelector('.history-file-input');
             row.querySelector('.history-img-trigger').addEventListener('click', () => fileInput.click());
             
             fileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if(!file) return;
-                processImageFile(file, (b64) => {
-                    row.querySelector('.history-img-base64').value = b64;
-                    const prevBox = row.querySelector('.history-img-preview');
-                    prevBox.style.display = 'block';
-                    prevBox.querySelector('img').src = b64;
-                });
+                const url = URL.createObjectURL(file);
+                row._blob = file;
+                row._previewUrl = url;
+                const prevBox = row.querySelector('.history-img-preview');
+                prevBox.style.display = 'block';
+                prevBox.querySelector('img').src = url;
             });
-
             container.appendChild(row);
         }
 
-        // 🚀 確実になったデータ保存処理
-        function saveItem(e) {
-            e.preventDefault();
+        // 🚀 高画質データの完全保存処理
+        function saveItem() {
             if (!db) { alert("データベースに接続されていません。"); return; }
             
-            const id = document.getElementById('itemId').value;
-            const historyRows = document.querySelectorAll('.dynamic-history-row');
-            const battleHistories = [];
-            
-            historyRows.forEach(row => {
-                battleHistories.push({
-                    result: row.querySelector('.history-result').value,
-                    image: row.querySelector('.history-img-base64').value,
-                    text: row.querySelector('.history-text').value
+            try {
+                const id = document.getElementById('itemId').value;
+                const titleVal = document.getElementById('itemTitle').value.trim();
+                
+                if(!titleVal) {
+                    alert("⚠️ 名前・二つ名を入力してください。");
+                    return;
+                }
+
+                const historyRows = document.querySelectorAll('.dynamic-history-row');
+                const battleHistories = [];
+                historyRows.forEach(row => {
+                    battleHistories.push({
+                        result: row.querySelector('.history-result').value,
+                        image: row._blob, // 生のBlob写真データ
+                        text: row.querySelector('.history-text').value
+                    });
                 });
-            });
 
-            const item = {
-                title: document.getElementById('itemTitle').value,
-                theme: document.getElementById('itemTheme').value,
-                wins: Number(document.getElementById('winCount').value) || 0,
-                losses: Number(document.getElementById('lossCount').value) || 0,
-                atk: document.getElementById('statAtk').value,
-                def: document.getElementById('statDef').value,
-                spd: document.getElementById('statSpd').value,
-                int: document.getElementById('statInt').value,
-                images: currentImages, 
-                histories: battleHistories
-            };
+                const item = {
+                    title: titleVal,
+                    theme: document.getElementById('itemTheme').value.trim(),
+                    wins: Number(document.getElementById('winCount').value) || 0,
+                    losses: Number(document.getElementById('lossCount').value) || 0,
+                    atk: Number(document.getElementById('statAtk').value) || 50,
+                    def: Number(document.getElementById('statDef').value) || 50,
+                    spd: Number(document.getElementById('statSpd').value) || 50,
+                    int: Number(document.getElementById('statInt').value) || 50,
+                    images: currentImages.map(img => img.blob), // 生のBlob写真の配列
+                    histories: battleHistories
+                };
 
-            const trans = db.transaction(STORE_NAME, "readwrite");
-            const store = trans.objectStore(STORE_NAME);
-            
-            if (id) { 
-                item.id = Number(id); 
-                store.put(item); 
-            } else { 
-                store.add(item); 
+                const trans = db.transaction(STORE_NAME, "readwrite");
+                const store = trans.objectStore(STORE_NAME);
+                
+                if (id) { 
+                    item.id = Number(id); 
+                    store.put(item); 
+                } else { 
+                    store.add(item); 
+                }
+
+                trans.oncomplete = () => { 
+                    alert("🎉 最高画質のまま図鑑に保存しました！");
+                    closeModal('formModal'); 
+                    fetchAll(); 
+                };
+                
+                trans.onerror = (err) => {
+                    alert("❌ 保存に失敗しました: " + err.target.error.message);
+                };
+
+            } catch (error) {
+                alert("⚠️ システムエラーが発生しました:\n" + error.message);
             }
-
-            trans.oncomplete = () => { 
-                closeModal('formModal'); 
-                fetchAll(); 
-            };
-            trans.onerror = (err) => {
-                alert("データの保存中にエラーが発生しました。");
-                console.error(err);
-            };
         }
 
         function openDetail(id) {
@@ -504,7 +492,7 @@
             document.getElementById('detailLosses').textContent = c.losses;
             document.getElementById('detailModeLabel').textContent = `STATUS MODE: ${getModeClass(c.wins, c.losses).replace('mode-','').toUpperCase()}`;
 
-            activeDetailImages = c.images || [];
+            activeDetailImages = c._cachedUrls || [];
             if(activeDetailImages.length === 0) activeDetailImages.push('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23fff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%23ccc">NO IMAGE</text></svg>');
             activeSlideIdx = 0;
             updateSliderUI();
@@ -528,7 +516,7 @@
                 c.histories.forEach(h => {
                     const hCard = document.createElement('div');
                     hCard.className = `history-card result-${h.result}`;
-                    let imgHtml = h.image ? `<div class="history-img-box"><img src="${h.image}"></div>` : '';
+                    let imgHtml = h._cachedUrl ? `<div class="history-img-box"><img src="${h._cachedUrl}"></div>` : '';
 
                     hCard.innerHTML = `
                         <div class="history-title-large">${h.result === 'WIN' ? 'VICTORY' : h.result === 'LOSE' ? 'DEFEAT' : 'DRAW'}</div>
@@ -573,7 +561,7 @@
             document.getElementById('statSpd').value = c.spd;
             document.getElementById('statInt').value = c.int;
 
-            currentImages = [...(c.images || [])];
+            currentImages = (c.images || []).map((b, idx) => ({ blob: b, url: c._cachedUrls[idx] }));
             renderFormImages();
 
             document.getElementById('formHistoryContainer').innerHTML = '';
@@ -585,7 +573,14 @@
         function openFormModal() {
             document.getElementById('formTitle').textContent = "キャラクター登録";
             document.getElementById('itemId').value = "";
-            document.getElementById('zukanForm').reset();
+            document.getElementById('itemTitle').value = "";
+            document.getElementById('itemTheme').value = "";
+            document.getElementById('winCount').value = 0;
+            document.getElementById('lossCount').value = 0;
+            document.getElementById('statAtk').value = 50;
+            document.getElementById('statDef').value = 50;
+            document.getElementById('statSpd').value = 50;
+            document.getElementById('statInt').value = 50;
             currentImages = [];
             document.getElementById('formImagesContainer').innerHTML = '';
             document.getElementById('formHistoryContainer').innerHTML = '';
