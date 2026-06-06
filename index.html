@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>コスファイ図鑑 - 戦記版</title>
+    <title>コスファイ究極戦記図鑑</title>
     <style>
         :root {
             --bg-color: #f2f2f7;
@@ -11,227 +11,238 @@
             --text-main: #1c1c1e;
             --text-sub: #8e8e93;
             --accent-color: #af52de;
-            --win-color: #ffcc00; /* ゴールド */
-            --lose-color: #7a7a7a; /* グレー */
-            --draw-color: #34c759; /* グリーン */
             --danger-color: #ff3b30;
             --border-radius-large: 18px;
             --border-radius-small: 12px;
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
 
-            --color-atk: #ff453a;
-            --color-def: #30d158;
-            --color-spd: #0a84ff;
-            --color-int: #ffd60a;
+            /* モード別カラー */
+            --color-god: linear-gradient(45deg, #ff007f, #7f00ff, #00bfff, #ffe600);
+            --color-cool: #ffcc00;
+            --color-draw: #af52de;
+            --color-struggle: #8e8e93;
+            --color-abyss: #1c1c1e;
+
+            /* ステータス */
+            --color-atk: #ff453a; --color-def: #30d158; --color-spd: #0a84ff; --color-int: #ffd60a;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding-top: calc(60px + var(--safe-top));
-            padding-bottom: calc(80px + var(--safe-bottom));
+            background-color: var(--bg-color); color: var(--text-main);
+            padding-top: calc(70px + var(--safe-top)); padding-bottom: calc(80px + var(--safe-bottom));
         }
 
         header {
-            position: fixed; top: 0; left: 0; right: 0; height: calc(60px + var(--safe-top));
+            position: fixed; top: 0; left: 0; right: 0; height: calc(70px + var(--safe-top));
             padding-top: var(--safe-top); background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             display: flex; align-items: center; justify-content: space-between;
             padding-left: 16px; padding-right: 16px; border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 100;
         }
+        header h1 { font-size: 16px; font-weight: 900; }
 
-        .btn { border: none; background: none; font-size: 16px; font-weight: 600; color: var(--accent-color); padding: 8px 14px; border-radius: var(--border-radius-small); cursor: pointer; }
+        .btn { border: none; background: none; font-size: 14px; font-weight: 600; color: var(--accent-color); padding: 8px 12px; border-radius: var(--border-radius-small); cursor: pointer; }
         .btn-primary { background-color: var(--accent-color); color: white; }
         .btn-danger { color: var(--danger-color); }
+        .btn-secondary { background-color: #e5e5ea; color: #1c1c1e; }
 
         main { padding: 16px; max-width: 500px; margin: 0 auto; }
         .search-input { width: 100%; padding: 14px 16px; font-size: 16px; border: none; background-color: rgba(142, 142, 147, 0.15); border-radius: var(--border-radius-small); outline: none; margin-bottom: 16px; }
 
-        /* --- リスト表示 --- */
+        /* --- 6つの戦績モード（通り）演出 --- */
         .list-container { display: flex; flex-direction: column; gap: 24px; }
+        .card { background: var(--card-bg); border-radius: var(--border-radius-large); overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; border: 3px solid transparent; }
+        
+        /* 1. 不敗神話 */
+        .card.mode-god { border-image: var(--color-god) 3; box-shadow: 0 0 25px rgba(255, 0, 127, 0.3); }
+        .card.mode-god::after { content: "👑 不敗神話"; position: absolute; top: 12px; right: 12px; background: black; color: #fff; font-size: 11px; font-weight: 900; padding: 4px 8px; border-radius: 6px; border: 1px solid #ff007f; }
+        /* 2. 常勝覇者 */
+        .card.mode-cool { border-color: var(--color-cool); box-shadow: 0 0 15px rgba(255,204,0,0.3); }
+        .card.mode-cool::after { content: "🥇 覇者"; position: absolute; top: 12px; right: 12px; background: var(--color-cool); color: #000; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
+        /* 3. 宿敵互角 */
+        .card.mode-draw { border-color: var(--color-draw); }
+        .card.mode-draw::after { content: "⚔️ 宿敵"; position: absolute; top: 12px; right: 12px; background: var(--color-draw); color: #fff; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
+        /* 4. 苦戦逆境 */
+        .card.mode-struggle { border-color: var(--color-struggle); }
+        .card.mode-struggle::after { content: "🩹 苦戦"; position: absolute; top: 12px; right: 12px; background: var(--color-struggle); color: #fff; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
+        /* 5. 地獄奈落 */
+        .card.mode-abyss { border-color: #ff3b30; background: #fafafa; filter: saturate(0.6); }
+        .card.mode-abyss::after { content: "💀 奈落"; position: absolute; top: 12px; right: 12px; background: #000; color: #ff3b30; font-size: 11px; font-weight: 900; padding: 4px 8px; border-radius: 6px; }
 
-        .card {
-            background: var(--card-bg); border-radius: var(--border-radius-large); overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; transition: all 0.3s ease;
-        }
+        /* 🎭 演出OFFモードの時の上書きスタイル */
+        body.effects-off .card { border-color: transparent !important; border-image: none !important; box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important; filter: none !important; }
+        body.effects-off .card::after { display: none !important; }
+        body.effects-off .history-card img { filter: none !important; box-shadow: none !important; border-color: #e5e5ea !important; }
 
-        /* --- 勝ち数が多い時の演出（覇者） --- */
-        .card.cool-mode {
-            border: 3px solid var(--win-color);
-            box-shadow: 0 0 20px rgba(255, 204, 0, 0.4);
-        }
-        .card.cool-mode::after {
-            content: "👑 覇者"; position: absolute; top: 10px; right: 10px;
-            background: var(--win-color); color: #000; font-size: 12px; font-weight: 800;
-            padding: 4px 8px; border-radius: 6px; z-index: 10;
-        }
-
-        /* --- 負け数が多い時の演出（不様） --- */
-        .card.shame-mode {
-            filter: grayscale(0.5) sepia(0.2);
-            border: 2px solid #555;
-        }
-        .card.shame-mode::after {
-            content: "💀 敗北者"; position: absolute; top: 10px; right: 10px;
-            background: #000; color: #fff; font-size: 10px; font-weight: 800;
-            padding: 4px 8px; border-radius: 6px; z-index: 10; opacity: 0.7;
-        }
-
-        .card-img-wrapper {
-            width: 100%; height: 320px; background-color: #ffffff; /* 背景を白に修正 */
-            display: flex; align-items: center; justify-content: center;
-        }
+        .card-img-wrapper { width: 100%; height: 320px; background-color: #ffffff; display: flex; align-items: center; justify-content: center; }
         .card img { width: 100%; height: 100%; object-fit: contain; }
         .card-info { padding: 16px; }
-        .card-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
-        .card-stats-summary { font-size: 13px; font-weight: 700; color: var(--text-sub); }
+        .card-title { font-size: 18px; font-weight: 800; }
 
         /* --- モーダル --- */
         .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 200; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal.active { opacity: 1; pointer-events: auto; }
-        .modal-content { width: 100%; background: var(--card-bg); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 20px 20px calc(30px + var(--safe-bottom)); max-height: 90vh; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s; }
+        .modal-content { width: 100%; background: var(--card-bg); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 16px 16px calc(30px + var(--safe-bottom)); max-height: 92vh; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s; }
         .modal.active .modal-content { transform: translateY(0); }
-        
-        /* --- フォームと詳細表示 --- */
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; color: #48484a; }
         .form-control { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #e5e5ea; border-radius: var(--border-radius-small); background: #fafafa; outline: none; }
-        textarea.form-control { height: 100px; }
+        
+        /* 複数画像管理UI */
+        .image-list-builder { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+        .image-thumb-box { position: relative; aspect-ratio: 1; border: 1px solid #e5e5ea; border-radius: 8px; overflow: hidden; background: #fff; }
+        .image-thumb-box img { width: 100%; height: 100%; object-fit: contain; }
+        .del-thumb-btn { position: absolute; top: 2px; right: 2px; background: rgba(255,59,48,0.8); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; }
 
-        .image-picker { width: 100%; height: 200px; border: 2px dashed #ccc; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; cursor: pointer; }
-        .image-picker img { width: 100%; height: 100%; object-fit: contain; background: #fff; }
+        /* 詳細画面画像スライダー */
+        .detail-img-slider { width: 100%; height: 340px; background: #fff; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; border: 1px solid #e5e5ea; position: relative; }
+        .detail-img-slider img { width: 100%; height: 100%; object-fit: contain; }
+        .slide-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.4); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-weight: bold; font-size: 18px; }
 
-        /* 詳細用装飾 */
-        .detail-img-box { width: 100%; height: 350px; background: #fff; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 1px solid #f2f2f7; }
-        .detail-img-box img { width: 100%; height: 100%; object-fit: contain; }
+        /* 動的戦記フォームの枠 */
+        .dynamic-history-row { background: #f2f2f7; padding: 12px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #e5e5ea; }
 
-        /* 戦績表示 */
-        .record-box { display: flex; gap: 10px; margin-bottom: 20px; text-align: center; }
-        .record-item { flex: 1; padding: 10px; border-radius: 12px; background: #f2f2f7; }
-        .record-val { font-size: 24px; font-weight: 900; display: block; }
-        .record-label { font-size: 12px; color: var(--text-sub); }
+        /* 戦闘履歴カード(結果ごとのエフェクト) */
+        .history-card { background: #fff; padding: 16px; border-radius: 14px; margin-bottom: 16px; border: 2px solid #e5e5ea; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .history-title-large { font-size: 32px; font-weight: 900; text-align: center; margin-bottom: 10px; letter-spacing: 1px; }
+        .history-card.result-WIN .history-title-large { color: #ffcc00; text-shadow: 0 0 8px rgba(255,204,0,0.4); }
+        .history-card.result-LOSE .history-title-large { color: #8e8e93; }
+        .history-card.result-DRAW .history-title-large { color: #34c759; }
 
-        /* 戦闘履歴（特大表示） */
-        .history-header { font-size: 48px; font-weight: 900; text-align: center; letter-spacing: -1px; margin-bottom: 10px; }
-        .history-win { color: var(--win-color); text-shadow: 0 0 10px rgba(255,204,0,0.3); }
-        .history-lose { color: var(--lose-color); filter: grayscale(1); }
-        .history-draw { color: var(--draw-color); }
+        /* 履歴画像の見た目変化 */
+        .history-img-box { width: 100%; height: 180px; background: #fff; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #e5e5ea; }
+        .history-img-box img { width: 100%; height: 100%; object-fit: contain; transition: all 0.3s; }
+        
+        /* エフェクト実体 */
+        .history-card.result-WIN img { filter: drop-shadow(0 0 8px rgba(255,204,0,0.6)); border-color: #ffcc00; }
+        .history-card.result-LOSE img { filter: grayscale(1) contrast(1.2) brightness(0.7); }
+        .history-card.result-DRAW img { filter: sepia(0.7) hue-rotate(60deg); }
 
-        .info-block { background: #f9f9f9; padding: 16px; border-radius: 12px; margin-bottom: 16px; border-left: 4px solid var(--accent-color); }
-        .info-title { font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 5px; }
-        .info-text { font-size: 15px; color: #333; white-space: pre-wrap; }
-
-        .status-bar-bg { width: 100%; height: 8px; background: #e5e5ea; border-radius: 4px; overflow: hidden; margin: 4px 0 12px; }
-        .status-bar-fill { height: 100%; width: 0; transition: width 0.6s ease; }
+        .status-bar-bg { width: 100%; height: 8px; background: #e5e5ea; border-radius: 4px; overflow: hidden; margin: 4px 0 10px; }
+        .status-bar-fill { height: 100%; width: 0; transition: width 0.5s; }
     </style>
 </head>
-<body>
+<body class="">
 
     <header>
-        <h1 onclick="location.reload()">⚔️ コスファイ戦記</h1>
-        <button class="btn btn-primary" onclick="openFormModal()">新規参戦</button>
+        <h1 onclick="location.reload()">⚔️ コスファイ究極戦記</h1>
+        <div>
+            <button class="btn btn-secondary" id="effectToggleBtn" onclick="toggleEffects()" style="margin-right:6px;">🎭演出: ON</button>
+            <button class="btn btn-primary" onclick="openFormModal()">新規参戦</button>
+        </div>
     </header>
 
     <main>
-        <input type="text" id="searchInput" class="search-input" placeholder="名前・戦績・能力を検索..." oninput="renderList()">
-        
-        <div id="itemCount" style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">0 Fighters</div>
+        <input type="text" id="searchInput" class="search-input" placeholder="ファイター名やテーマで検索..." oninput="renderList()">
         <div id="listContainer" class="list-container"></div>
     </main>
 
     <div id="formModal" class="modal" onclick="if(event.target.id==='formModal')closeModal('formModal')">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="modal-title" id="formTitle">キャラクター登録</span>
-                <button class="btn" onclick="closeModal('formModal')">戻る</button>
+                <span style="font-size:18px; font-weight:900;" id="formTitle">キャラクター登録</span>
+                <button class="btn" onclick="closeModal('formModal')">閉じる</button>
             </div>
             <form id="zukanForm" onsubmit="saveItem(event)">
                 <input type="hidden" id="itemId">
+                
                 <div class="form-group">
-                    <label>全身画像</label>
-                    <div class="image-picker" onclick="document.getElementById('fileInput').click()">
-                        <span id="pickerText">画像をアップロード</span>
-                        <img id="previewImg" src="" style="display:none;">
-                    </div>
-                    <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="previewImage(event)">
+                    <label>キャラクター画像（複数追加可能）</label>
+                    <button type="button" class="btn btn-secondary" style="width:100%; padding:12px; border:1px dashed #ccc;" onclick="document.getElementById('fileInput').click()">📷 画像を追加する</button>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="addMainImage(event)">
+                    <div id="formImagesContainer" class="image-list-builder"></div>
                 </div>
+
                 <div class="form-group">
                     <label>名前・二つ名</label>
-                    <input type="text" id="itemTitle" class="form-control" placeholder="例: 虚ろの蒼 ギルバート" required>
+                    <input type="text" id="itemTitle" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label>テーマ</label>
-                    <input type="text" id="itemTheme" class="form-control" placeholder="例: サイバー忍者">
+                    <input type="text" id="itemTheme" class="form-control" placeholder="例: 魔法少女、サイボーグ">
                 </div>
                 <div class="form-group" style="display:flex; gap:10px;">
-                    <div style="flex:1;"><label>勝ち数</label><input type="number" id="winCount" class="form-control" value="0"></div>
-                    <div style="flex:1;"><label>負け数</label><input type="number" id="lossCount" class="form-control" value="0"></div>
+                    <div style="flex:1;"><label>総勝ち数</label><input type="number" id="winCount" class="form-control" value="0" min="0"></div>
+                    <div style="flex:1;"><label>総負け数</label><input type="number" id="lossCount" class="form-control" value="0" min="0"></div>
                 </div>
-                <div class="form-group">
-                    <label>直近の戦闘結果</label>
-                    <select id="lastResult" class="form-control">
-                        <option value="WIN">勝利 (VICTORY)</option>
-                        <option value="LOSE">敗北 (DEFEAT)</option>
-                        <option value="DRAW">引き分け (DRAW)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>詳細な戦闘履歴（物語）</label>
-                    <textarea id="battleLog" class="form-control" placeholder="過去の戦いのエピソードを記述..."></textarea>
-                </div>
+
                 <div class="form-group">
                     <label>ステータス (ATK / DEF / SPD / INT)</label>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                        <input type="number" id="statAtk" class="form-control" placeholder="ATK" value="50">
-                        <input type="number" id="statDef" class="form-control" placeholder="DEF" value="50">
-                        <input type="number" id="statSpd" class="form-control" placeholder="SPD" value="50">
-                        <input type="number" id="statInt" class="form-control" placeholder="INT" value="50">
+                    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;">
+                        <input type="number" id="statAtk" class="form-control" placeholder="ATK" value="50" max="100">
+                        <input type="number" id="statDef" class="form-control" placeholder="DEF" value="50" max="100">
+                        <input type="number" id="statSpd" class="form-control" placeholder="SPD" value="50" max="100">
+                        <input type="number" id="statInt" class="form-control" placeholder="INT" value="50" max="100">
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width:100%; padding:16px; margin-top:10px;">刻銘を保存</button>
+
+                <div class="form-group" style="margin-top:20px;">
+                    <div style="display:flex; justify-content:between; align-items:center; margin-bottom:8px;">
+                        <label style="margin:0;">📜 詳細な戦闘履歴（複数追加可能）</label>
+                        <button type="button" class="btn btn-primary" style="padding:4px 10px; font-size:12px;" onclick="addHistoryRow()">＋戦記を追加</button>
+                    </div>
+                    <div id="formHistoryContainer"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:100%; padding:16px; margin-top:15px; font-size:16px; font-weight:800;">戦記データを保存</button>
             </form>
         </div>
     </div>
 
     <div id="detailModal" class="modal" onclick="if(event.target.id==='detailModal')closeModal('detailModal')">
         <div class="modal-content">
-            <div id="historyHeader" class="history-header">RESULT</div>
-            <div class="detail-img-box"><img id="detailImg" src=""></div>
+            <div class="modal-header">
+                <span style="font-size:16px; font-weight:800;" id="detailModeLabel">CHARACTER DETAIL</span>
+                <button class="btn" onclick="closeModal('detailModal')">閉じる</button>
+            </div>
             
-            <h2 id="detailName" style="font-size:24px; font-weight:900; margin-bottom:5px;">名前</h2>
-            <div id="detailTheme" style="font-size:14px; color:var(--accent-color); font-weight:700; margin-bottom:20px;">テーマ</div>
-
-            <div class="record-box">
-                <div class="record-item" style="color:var(--win-color);"><span id="detailWins" class="record-val">0</span><span class="record-label">WINS</span></div>
-                <div class="record-item" style="color:var(--lose-color);"><span id="detailLosses" class="record-val">0</span><span class="record-label">LOSSES</span></div>
+            <div class="detail-img-slider">
+                <button class="slide-btn" style="left:10px;" onclick="changeSlide(-1)">◀</button>
+                <img id="detailImg" src="">
+                <button class="slide-btn" style="right:10px;" onclick="changeSlide(1)">▶</button>
+                <div id="sliderBadge" style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.6); color:#fff; padding:2px 8px; font-size:11px; border-radius:10px;">1/1</div>
             </div>
 
-            <div id="statSection" style="margin-bottom:20px;">
-                </div>
+            <h2 id="detailName" style="font-size:24px; font-weight:900;"></h2>
+            <div id="detailTheme" style="font-size:14px; color:var(--accent-color); font-weight:700; margin-bottom:14px;"></div>
 
-            <div class="info-block">
-                <div class="info-title">HISTORY LOG</div>
-                <div id="detailBattleLog" class="info-text">戦いの記録はありません。</div>
+            <div style="display:flex; gap:10px; text-align:center; margin-bottom:16px;">
+                <div style="flex:1; background:#f2f2f7; padding:8px; border-radius:10px;"><span id="detailWins" style="font-size:20px; font-weight:900; color:var(--color-cool);">0</span><br><span style="font-size:10px; color:var(--text-sub);">WINS</span></div>
+                <div style="flex:1; background:#f2f2f7; padding:8px; border-radius:10px;"><span id="detailLosses" style="font-size:20px; font-weight:900; color:var(--danger-color);">0</span><br><span style="font-size:10px; color:var(--text-sub);">LOSSES</span></div>
             </div>
 
-            <div style="display:flex; gap:10px;">
-                <button class="btn" style="flex:1; background:#eee;" id="editBtn">修整</button>
-                <button class="btn btn-danger" style="flex:1; background:#fff0f0;" id="deleteBtn">抹消</button>
+            <div id="detailStatsBox" style="background:#f2f2f7; padding:12px; border-radius:14px; margin-bottom:20px;"></div>
+
+            <h3 style="font-size:15px; font-weight:800; margin-bottom:10px;">📜 過去の戦闘ログ</h3>
+            <div id="detailHistoryContainer"></div>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn" style="flex:1; background:#e5e5ea; color:#1c1c1e;" id="editBtn">データ修整</button>
+                <button class="btn btn-danger" style="flex:1; background:rgba(255,59,48,0.1);" id="deleteBtn">完全抹消</button>
             </div>
         </div>
     </div>
 
     <script>
-        const DB_NAME = "CosfiBattleDB";
-        const STORE_NAME = "characters";
+        const DB_NAME = "CosfiUltimateDB";
+        const STORE_NAME = "fighters";
         let db = null;
         let charData = [];
+        let currentImages = []; // 編集・登録中の画像配列
+        let activeSlideIdx = 0; // 詳細表示中の画像インデックス
+        let activeDetailImages = []; // 詳細表示中の画像配列
 
         window.onload = () => {
+            // 演出ON/OFFの初期設定復元
+            if(localStorage.getItem('effectsDisabled') === 'true') {
+                document.body.classList.add('effects-off');
+                document.getElementById('effectToggleBtn').textContent = "🎭演出: OFF";
+            }
             const request = indexedDB.open(DB_NAME, 1);
             request.onupgradeneeded = (e) => {
                 e.target.result.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
@@ -239,10 +250,28 @@
             request.onsuccess = (e) => { db = e.target.result; fetchAll(); };
         };
 
+        function toggleEffects() {
+            const isOff = document.body.classList.toggle('effects-off');
+            localStorage.setItem('effectsDisabled', isOff);
+            document.getElementById('effectToggleBtn').textContent = isOff ? "🎭演出: OFF" : "🎭演出: ON";
+        }
+
         function fetchAll() {
-            const store = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME);
-            const req = store.getAll();
-            req.onsuccess = () => { charData = req.result; renderList(); };
+            db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).getAll().onsuccess = (e) => {
+                charData = e.result || [];
+                renderList();
+            };
+        }
+
+        // 戦績から「通り（モード）」のクラスを判定するロジック
+        function getModeClass(w, l) {
+            if(w === 0 && l === 0) return 'mode-none';
+            if(w > 0 && l === 0) return 'mode-god';
+            if(w > l) return 'mode-cool';
+            if(w === l) return 'mode-draw';
+            if(w < l && w > 0) return 'mode-struggle';
+            if(l > 0 && w === 0) return 'mode-abyss';
+            return '';
         }
 
         function renderList() {
@@ -250,140 +279,267 @@
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             container.innerHTML = "";
 
-            const filtered = charData.filter(c => c.title.toLowerCase().includes(keyword) || c.theme.toLowerCase().includes(keyword));
-            document.getElementById('itemCount').textContent = `${filtered.length} Fighters`;
+            const filtered = charData.filter(c => c.title.toLowerCase().includes(keyword) || (c.theme && c.theme.toLowerCase().includes(keyword)));
 
             filtered.sort((a,b) => b.id - a.id).forEach(c => {
                 const card = document.createElement('div');
-                const winRate = c.wins > c.losses;
-                const shameMode = c.losses > c.wins;
-                
-                card.className = `card ${winRate ? 'cool-mode' : ''} ${shameMode ? 'shame-mode' : ''}`;
+                card.className = `card ${getModeClass(c.wins, c.losses)}`;
                 card.onclick = () => openDetail(c.id);
 
+                // 画像が複数ある場合は最初の1枚を表示
+                const mainImg = (c.images && c.images.length > 0) ? c.images[0] : (c.image ? c.image : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23fff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%23ccc">NO IMAGE</text></svg>');
+
                 card.innerHTML = `
-                    <div class="card-img-wrapper"><img src="${c.image || 'https://via.placeholder.com/300?text=No+Image'}"></div>
+                    <div class="card-img-wrapper"><img src="${mainImg}" loading="lazy"></div>
                     <div class="card-info">
-                        <div class="card-title">${c.title}</div>
-                        <div class="card-stats-summary">${c.wins}W - ${c.losses}L / Theme: ${c.theme}</div>
+                        <div class="card-title">${escapeHtml(c.title)}</div>
+                        <div style="font-size:12px; color:var(--text-sub); font-weight:600; margin-top:2px;">${c.wins}勝 ${c.losses}敗 / テーマ: ${escapeHtml(c.theme || '未設定')}</div>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        function previewImage(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+        // 高画質画像処理(2048px上限)共通
+        function processImageFile(file, callback) {
             const reader = new FileReader();
             reader.onload = (ev) => {
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     let w = img.width, h = img.height;
-                    const max = 1200;
+                    const max = 2048;
                     if(w > h) { if(w > max) { h *= max/w; w = max; } }
                     else { if(h > max) { w *= max/h; h = max; } }
                     canvas.width = w; canvas.height = h;
                     canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    const b64 = canvas.toDataURL('image/jpeg', 0.8);
-                    document.getElementById('previewImg').src = b64;
-                    document.getElementById('previewImg').style.display = "block";
-                    document.getElementById('pickerText').style.display = "none";
+                    callback(canvas.toDataURL('image/jpeg', 0.85));
                 };
                 img.src = ev.target.result;
             };
             reader.readAsDataURL(file);
         }
 
+        // 複数メイン画像の追加
+        function addMainImage(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            processImageFile(file, (b64) => {
+                currentImages.push(b64);
+                renderFormImages();
+            });
+            e.target.value = '';
+        }
+
+        function renderFormImages() {
+            const container = document.getElementById('formImagesContainer');
+            container.innerHTML = '';
+            currentImages.forEach((src, idx) => {
+                const div = document.createElement('div');
+                div.className = 'image-thumb-box';
+                div.innerHTML = `
+                    <img src="${src}">
+                    <button type="button" class="del-thumb-btn" onclick="currentImages.splice(${idx},1); renderFormImages();">✕</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // 戦記（戦闘履歴）行をフォームに動的追加
+        function addHistoryRow(data = null) {
+            const container = document.getElementById('formHistoryContainer');
+            const row = document.createElement('div');
+            row.className = 'dynamic-history-row';
+            
+            row.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-size:12px; font-weight:800; color:var(--accent-color);">対戦ログ</span>
+                    <button type="button" class="btn btn-danger" style="padding:2px 6px; font-size:11px;" onclick="this.parentElement.parentElement.remove()">削除</button>
+                </div>
+                <div class="form-group">
+                    <select class="form-control history-result">
+                        <option value="WIN" ${data?.result==='WIN'?'selected':''}>VICTORY (勝利)</option>
+                        <option value="LOSE" ${data?.result==='LOSE'?'selected':''}>DEFEAT (敗北)</option>
+                        <option value="DRAW" ${data?.result==='DRAW'?'selected':''}>DRAW (引き分け)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <button type="button" class="btn btn-secondary" style="font-size:12px;" onclick="this.nextElementSibling.click()">📷 履歴画像</button>
+                        <input type="file" accept="image/*" style="display:none;" onchange="uploadHistoryImg(event)">
+                        <input type="hidden" class="history-img-base64" value="${data?.image || ''}">
+                        <div class="history-img-preview" style="width:50px; height:50px; background:#fff; border-radius:6px; border:1px solid #ccc; overflow:hidden; display:${data?.image?'block':'none'}">
+                            <img src="${data?.image || ''}" style="width:100%; height:100%; object-fit:contain;">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <textarea class="form-control history-text" placeholder="戦闘の詳細文章を入力..." style="height:70px; font-size:14px;">${data?.text || ''}</textarea>
+                </div>
+            `;
+            container.appendChild(row);
+        }
+
+        function uploadHistoryImg(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const parent = e.target.parentElement;
+            processImageFile(file, (b64) => {
+                parent.querySelector('.history-img-base64').value = b64;
+                const prevBox = parent.querySelector('.history-img-preview');
+                prevBox.style.display = 'block';
+                prevBox.querySelector('img').src = b64;
+            });
+        }
+
+        // 保存
         function saveItem(e) {
             e.preventDefault();
             const id = document.getElementById('itemId').value;
+            
+            // 動的戦記データの収集
+            const historyRows = document.querySelectorAll('.dynamic-history-row');
+            const battleHistories = [];
+            historyRows.forEach(row => {
+                battleHistories.push({
+                    result: row.querySelector('.history-result').value,
+                    image: row.querySelector('.history-img-base64').value,
+                    text: row.querySelector('.history-text').value
+                });
+            });
+
             const item = {
                 title: document.getElementById('itemTitle').value,
                 theme: document.getElementById('itemTheme').value,
-                wins: Number(document.getElementById('winCount').value),
-                losses: Number(document.getElementById('lossCount').value),
-                lastResult: document.getElementById('lastResult').value,
-                battleLog: document.getElementById('battleLog').value,
+                wins: Number(document.getElementById('winCount').value) || 0,
+                losses: Number(document.getElementById('lossCount').value) || 0,
                 atk: document.getElementById('statAtk').value,
                 def: document.getElementById('statDef').value,
                 spd: document.getElementById('statSpd').value,
                 int: document.getElementById('statInt').value,
-                image: document.getElementById('previewImg').src
+                images: currentImages, // 配列保存
+                histories: battleHistories
             };
+
             const trans = db.transaction(STORE_NAME, "readwrite");
             if (id) { item.id = Number(id); trans.objectStore(STORE_NAME).put(item); }
             else { trans.objectStore(STORE_NAME).add(item); }
             trans.oncomplete = () => { closeModal('formModal'); fetchAll(); };
         }
 
+        // 詳細画面
         function openDetail(id) {
             const c = charData.find(x => x.id === id);
-            const head = document.getElementById('historyHeader');
-            head.textContent = c.lastResult || "RESULT";
-            head.className = "history-header " + 
-                (c.lastResult === 'WIN' ? 'history-win' : c.lastResult === 'LOSE' ? 'history-lose' : 'history-draw');
+            if(!c) return;
 
-            document.getElementById('detailImg').src = c.image;
             document.getElementById('detailName').textContent = c.title;
-            document.getElementById('detailTheme').textContent = c.theme;
+            document.getElementById('detailTheme').textContent = c.theme || '未設定';
             document.getElementById('detailWins').textContent = c.wins;
             document.getElementById('detailLosses').textContent = c.losses;
-            document.getElementById('detailBattleLog').textContent = c.battleLog || "戦闘記録はありません。";
+            document.getElementById('detailModeLabel').textContent = `STATUS MODE: ${getModeClass(c.wins, c.losses).replace('mode-','').toUpperCase()}`;
 
+            // 複数画像スライダーのセットアップ
+            activeDetailImages = c.images || (c.image ? [c.image] : []);
+            if(activeDetailImages.length === 0) activeDetailImages.push('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23fff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%23ccc">NO IMAGE</text></svg>');
+            activeSlideIdx = 0;
+            updateSliderUI();
+
+            // ステータス描画
             const stats = [
                 {label: 'ATK', val: c.atk, col: 'var(--color-atk)'},
                 {label: 'DEF', val: c.def, col: 'var(--color-def)'},
                 {label: 'SPD', val: c.spd, col: 'var(--color-spd)'},
                 {label: 'INT', val: c.int, col: 'var(--color-int)'}
             ];
-            document.getElementById('statSection').innerHTML = stats.map(s => `
-                <div style="font-size:12px; font-weight:800; display:flex; justify-content:space-between;">
-                    <span>${s.label}</span><span>${s.val}</span>
-                </div>
+            document.getElementById('detailStatsBox').innerHTML = stats.map(s => `
+                <div style="font-size:12px; font-weight:800; display:flex; justify-content:space-between; margin-top:4px;"><span>${s.label}</span><span>${s.val}</span></div>
                 <div class="status-bar-bg"><div class="status-bar-fill" style="width:${s.val}%; background:${s.col}"></div></div>
             `).join('');
 
+            // 詳細な戦闘履歴（画像エフェクト連動）の描画
+            const histContainer = document.getElementById('detailHistoryContainer');
+            histContainer.innerHTML = '';
+            if(!c.histories || c.histories.length === 0) {
+                histContainer.innerHTML = '<div style="font-size:13px; color:var(--text-sub); text-align:center; padding:10px;">記録された戦記はありません。</div>';
+            } else {
+                c.histories.forEach(h => {
+                    const hCard = document.createElement('div');
+                    hCard.className = `history-card result-${h.result}`;
+                    
+                    let imgHtml = '';
+                    if(h.image) {
+                        imgHtml = `<div class="history-img-box"><img src="${h.image}"></div>`;
+                    }
+
+                    hCard.innerHTML = `
+                        <div class="history-title-large">${h.result === 'WIN' ? 'VICTORY' : h.result === 'LOSE' ? 'DEFEAT' : 'DRAW'}</div>
+                        ${imgHtml}
+                        <div style="font-size:14px; color:#2c2c2e; white-space:pre-wrap; line-height:1.4;">${escapeHtml(h.text || '（詳細内容なし）')}</div>
+                    `;
+                    histContainer.appendChild(hCard);
+                });
+            }
+
             document.getElementById('editBtn').onclick = () => openEdit(c);
             document.getElementById('deleteBtn').onclick = () => {
-                if(confirm("このキャラクターの存在を抹消しますか？")) {
+                if(confirm("このファイターの全データを完全に抹消しますか？")) {
                     db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).delete(c.id).oncomplete = () => { closeModal('detailModal'); fetchAll(); };
                 }
             };
             openModal('detailModal');
         }
 
+        function updateSliderUI() {
+            document.getElementById('detailImg').src = activeDetailImages[activeSlideIdx];
+            document.getElementById('sliderBadge').textContent = `${activeSlideIdx + 1} / ${activeDetailImages.length}`;
+        }
+
+        function changeSlide(dir) {
+            activeSlideIdx += dir;
+            if(activeSlideIdx < 0) activeSlideIdx = activeDetailImages.length - 1;
+            if(activeSlideIdx >= activeDetailImages.length) activeSlideIdx = 0;
+            updateSliderUI();
+        }
+
+        // 編集フォームを開く
         function openEdit(c) {
             closeModal('detailModal');
-            document.getElementById('formTitle').textContent = "刻銘の修整";
+            document.getElementById('formTitle').textContent = "戦記の修整";
             document.getElementById('itemId').value = c.id;
             document.getElementById('itemTitle').value = c.title;
-            document.getElementById('itemTheme').value = c.theme;
+            document.getElementById('itemTheme').value = c.theme || '';
             document.getElementById('winCount').value = c.wins;
             document.getElementById('lossCount').value = c.losses;
-            document.getElementById('lastResult').value = c.lastResult;
-            document.getElementById('battleLog').value = c.battleLog;
             document.getElementById('statAtk').value = c.atk;
             document.getElementById('statDef').value = c.def;
             document.getElementById('statSpd').value = c.spd;
             document.getElementById('statInt').value = c.int;
-            document.getElementById('previewImg').src = c.image;
-            document.getElementById('previewImg').style.display = "block";
-            document.getElementById('pickerText').style.display = "none";
+
+            // 複数画像配列のコピー
+            currentImages = [...(c.images || (c.image ? [c.image] : []))];
+            renderFormImages();
+
+            // 動的履歴の復元
+            document.getElementById('formHistoryContainer').innerHTML = '';
+            if(c.histories) {
+                c.histories.forEach(h => addHistoryRow(h));
+            }
+
             openModal('formModal');
         }
 
         function openFormModal() {
-            document.getElementById('formTitle').textContent = "キャラクター参戦";
+            document.getElementById('formTitle').textContent = "キャラクター登録";
             document.getElementById('itemId').value = "";
             document.getElementById('zukanForm').reset();
-            document.getElementById('previewImg').style.display = "none";
-            document.getElementById('pickerText').style.display = "block";
+            currentImages = [];
+            document.getElementById('formImagesContainer').innerHTML = '';
+            document.getElementById('formHistoryContainer').innerHTML = '';
             openModal('formModal');
         }
+
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-    </script>
-</body>
-</html>
+        function escapeHtml(str) {
+            if(!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt
