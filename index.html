@@ -21,6 +21,8 @@
 
         header { position: fixed; top: 0; left: 0; right: 0; height: calc(70px + var(--safe-top)); padding-top: var(--safe-top); background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: space-between; padding-left: 16px; padding-right: 16px; border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 100; }
         header h1 { font-size: 18px; font-weight: 900; cursor: pointer; }
+        
+        .header-btn-group { display: flex; gap: 6px; align-items: center; }
 
         .btn { border: none; background: none; font-size: 14px; font-weight: 600; color: var(--accent-color); padding: 8px 12px; border-radius: var(--border-radius-small); cursor: pointer; }
         .btn-primary { background-color: var(--accent-color); color: white; }
@@ -101,9 +103,10 @@
 
     <header>
         <h1 id="headerTitle">⚔️ コスファイ戦記</h1>
-        <div>
-            <button class="btn btn-secondary" id="effectToggleBtn" style="margin-right:6px;">🎭演出: ON</button>
-            <button class="btn btn-primary" id="addFighterBtn">新規参戦</button>
+        <div class="header-btn-group">
+            <button class="btn btn-secondary" id="dataBtn" style="padding:6px 10px; font-size:16px;">💾</button>
+            <button class="btn btn-secondary" id="effectToggleBtn" style="padding:6px 8px; font-size:12px;">🎭</button>
+            <button class="btn btn-primary" id="addFighterBtn" style="padding:6px 10px; font-size:12px;">新規参戦</button>
         </div>
     </header>
 
@@ -111,6 +114,22 @@
         <input type="text" id="searchInput" class="search-input" placeholder="ファイター名やテーマで検索..." oninput="renderList()">
         <div id="listContainer" class="list-container"></div>
     </main>
+
+    <div id="dataModal" class="modal" onclick="if(event.target.id==='dataModal')closeModal('dataModal')">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span style="font-size:18px; font-weight:900;">💾 データ管理</span>
+                <button class="btn" onclick="closeModal('dataModal')">閉じる</button>
+            </div>
+            <div style="margin-bottom: 16px; font-size: 13px; color: var(--text-sub); line-height: 1.5;">
+                シークレットタブではブラウザを閉じるとデータが消えてしまいます。<br>
+                終了前に「ファイルに保存」し、次回開いた際に「ファイルから復元」を行ってください。
+            </div>
+            <button id="exportBtn" class="btn btn-primary" style="width:100%; padding:14px; margin-bottom:12px; font-size:15px; font-weight:800;">📥 今のデータをファイルに保存</button>
+            <button id="importBtnTrigger" class="btn btn-secondary" style="width:100%; padding:14px; font-size:15px; font-weight:800;">📤 保存したファイルから復元</button>
+            <input type="file" id="importFileInput" accept=".json" style="display:none;">
+        </div>
+    </div>
 
     <div id="formModal" class="modal" onclick="if(event.target.id==='formModal')closeModal('formModal')">
         <div class="modal-content">
@@ -227,7 +246,7 @@
             try {
                 if(localStorage.getItem('effectsDisabled') === 'true') {
                     document.body.classList.add('effects-off');
-                    document.getElementById('effectToggleBtn').textContent = "🎭演出: OFF";
+                    document.getElementById('effectToggleBtn').textContent = "🎭OFF";
                 }
             } catch(e) {}
 
@@ -238,16 +257,165 @@
             document.getElementById('slidePrevBtn').addEventListener('click', () => changeSlide(-1));
             document.getElementById('slideNextBtn').addEventListener('click', () => changeSlide(1));
             document.getElementById('submitDataBtn').addEventListener('click', saveItem);
+            
+            // 💾 データ管理用のイベント追加
+            document.getElementById('dataBtn').addEventListener('click', () => openModal('dataModal'));
+            document.getElementById('exportBtn').addEventListener('click', exportData);
+            document.getElementById('importBtnTrigger').addEventListener('click', () => document.getElementById('importFileInput').click());
+            document.getElementById('importFileInput').addEventListener('change', importData);
 
             document.getElementById('headerTitle').addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
             initDB();
         });
 
+        // -----------------------------
+        // データ入出力（Base64変換処理）
+        // -----------------------------
+        function bufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+
+        function base64ToBuffer(base64) {
+            const binary_string = window.atob(base64);
+            const len = binary_string.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binary_string.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        async function exportData() {
+            if (!db) { alert("データベースに接続されていません。"); return; }
+            const transaction = db.transaction(STORE_NAME, "readonly");
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.getAll();
+            
+            request.onsuccess = (e) => {
+                const data = e.target.result;
+                if (!data || data.length === 0) {
+                    alert("保存するデータがありません。");
+                    return;
+                }
+                
+                try {
+                    document.getElementById('exportBtn').textContent = "📦 処理中...";
+                    
+                    const exportData = data.map(item => {
+                        const newItem = { ...item };
+                        if (newItem.images) {
+                            newItem.images = newItem.images.map(img => {
+                                if (img && img.buffer) return { base64: bufferToBase64(img.buffer), type: img.type };
+                                return img;
+                            });
+                        }
+                        if (newItem.histories) {
+                            newItem.histories = newItem.histories.map(h => {
+                                const newH = { ...h };
+                                if (newH.image && newH.image.buffer) newH.image = { base64: bufferToBase64(newH.image.buffer), type: newH.image.type };
+                                return newH;
+                            });
+                        }
+                        // キャッシュ用の一時データを削除
+                        delete newItem._restoredBlobs;
+                        delete newItem._cachedUrls;
+                        if(newItem.histories) {
+                            newItem.histories.forEach(h => { delete h._restoredBlob; delete h._cachedUrl; });
+                        }
+                        return newItem;
+                    });
+
+                    const jsonStr = JSON.stringify(exportData);
+                    const blob = new Blob([jsonStr], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement("a");
+                    a.href = url;
+                    const date = new Date();
+                    const dateStr = `${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2,'0')}${date.getDate().toString().padStart(2,'0')}`;
+                    a.download = `CosfiData_${dateStr}.json`;
+                    
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    document.getElementById('exportBtn').textContent = "✅ 保存完了";
+                    setTimeout(() => { document.getElementById('exportBtn').textContent = "📥 今のデータをファイルに保存"; }, 2000);
+
+                } catch (error) {
+                    alert("データのエクスポート中にエラーが発生しました。\n" + error.message);
+                    document.getElementById('exportBtn').textContent = "📥 今のデータをファイルに保存";
+                }
+            };
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (!Array.isArray(importedData)) throw new Error("無効なデータ形式です");
+
+                    if (!confirm("現在のアプリ内のデータはすべて上書きされます。よろしいですか？")) {
+                        event.target.value = '';
+                        return;
+                    }
+
+                    const transaction = db.transaction(STORE_NAME, "readwrite");
+                    const store = transaction.objectStore(STORE_NAME);
+                    store.clear(); // 既存データを全削除
+
+                    importedData.forEach(item => {
+                        const newItem = { ...item };
+                        if (newItem.images) {
+                            newItem.images = newItem.images.map(img => {
+                                if (img && img.base64) return { buffer: base64ToBuffer(img.base64), type: img.type };
+                                return img;
+                            });
+                        }
+                        if (newItem.histories) {
+                            newItem.histories = newItem.histories.map(h => {
+                                const newH = { ...h };
+                                if (newH.image && newH.image.base64) newH.image = { buffer: base64ToBuffer(newH.image.base64), type: newH.image.type };
+                                return newH;
+                            });
+                        }
+                        store.put(newItem); 
+                    });
+
+                    transaction.oncomplete = () => {
+                        alert("データの復元が完了しました！");
+                        closeModal('dataModal');
+                        fetchAll();
+                    };
+                    transaction.onerror = (err) => {
+                        alert("データの復元に失敗しました: " + err.target.error.message);
+                    };
+
+                } catch (error) {
+                    alert("ファイルの読み込みに失敗しました。正しいバックアップデータを選択してください。");
+                }
+                event.target.value = ''; 
+            };
+            reader.readAsText(file);
+        }
+        // -----------------------------
+
         function toggleEffects() {
             const isOff = document.body.classList.toggle('effects-off');
             try { localStorage.setItem('effectsDisabled', isOff); } catch(e) {}
-            document.getElementById('effectToggleBtn').textContent = isOff ? "🎭演出: OFF" : "🎭演出: ON";
+            document.getElementById('effectToggleBtn').textContent = isOff ? "🎭OFF" : "🎭ON";
         }
 
         function initDB() {
@@ -307,13 +475,11 @@
             };
         }
 
-        // 🌟 奈落の条件をアップデート（全敗じゃなくても、負けが勝ちの2倍以上なら奈落）
         function getModeClass(w, l) {
             if(w === 0 && l === 0) return 'mode-none';
             if(w > 0 && l === 0) return 'mode-god';
             if(w > l) return 'mode-cool';
             if(w === l) return 'mode-draw';
-            // 負けが勝ちの2倍以上の場合（例：1勝2敗、2勝4敗など）は奈落に落ちる
             if(l >= w * 2 && l > 0) return 'mode-abyss';
             return 'mode-struggle';
         }
@@ -368,7 +534,6 @@
             });
         }
 
-        // 🔥 必殺技と弱点の入力欄を追加する関数
         function addSkillRow(val = '') {
             const container = document.getElementById('formSkillsContainer');
             const row = document.createElement('div');
@@ -455,7 +620,6 @@
                 submitBtn.textContent = "高画質で保存中...";
                 submitBtn.disabled = true;
 
-                // 必殺技と弱点データを取得
                 const skills = Array.from(document.querySelectorAll('.skill-input')).map(input => input.value.trim()).filter(v => v);
                 const weaknesses = Array.from(document.querySelectorAll('.weakness-input')).map(input => input.value.trim()).filter(v => v);
 
@@ -545,7 +709,6 @@
                 <div class="status-bar-bg"><div class="status-bar-fill" style="width:${s.val}%; background:${s.col}"></div></div>
             `).join('');
 
-            // 🌟 必殺技・弱点の表示
             let swHtml = '';
             if(c.skills && c.skills.length > 0) {
                 swHtml += `<div style="margin-bottom:12px;"><div style="font-size:13px; font-weight:800; margin-bottom:6px;">🔥 必殺技</div>` + 
@@ -566,8 +729,6 @@
                     const hCard = document.createElement('div');
                     hCard.className = `history-card result-${h.result}`;
                     let imgHtml = h._cachedUrl ? `<div class="history-img-box"><img src="${h._cachedUrl}"></div>` : '';
-
-                    // ⚔️ 戦闘の題名表示を追加
                     let titleHtml = h.battleTitle ? `<div class="battle-title-display">${escapeHtml(h.battleTitle)}</div>` : '';
 
                     hCard.innerHTML = `
@@ -614,7 +775,7 @@
             document.getElementById('statSpd').value = c.spd;
             document.getElementById('statInt').value = c.int;
 
-        　　document.getElementById('formSkillsContainer').innerHTML = '';
+          document.getElementById('formSkillsContainer').innerHTML = '';
             if(c.skills) c.skills.forEach(s => addSkillRow(s));
             
             document.getElementById('formWeaknessesContainer').innerHTML = '';
@@ -647,7 +808,6 @@
             document.getElementById('formImagesContainer').innerHTML = '';
             document.getElementById('formHistoryContainer').innerHTML = '';
             
-            // 初めから入力欄を1つずつ用意しておく
             addSkillRow();
             addWeaknessRow();
 
