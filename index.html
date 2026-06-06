@@ -35,7 +35,7 @@
         .card { background: var(--card-bg); border-radius: var(--border-radius-large); overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; border: 3px solid transparent; cursor: pointer; }
         
         .card.mode-god { border-image: var(--color-god) 3; box-shadow: 0 0 25px rgba(255, 0, 127, 0.3); }
-        .card.mode-god::after { content: "👑 不敗"; position: absolute; top: 12px; right: 12px; background: black; color: #fff; font-size: 11px; font-weight: 900; padding: 4px 8px; border-radius: 6px; border: 1px solid #ff007f; }
+        .card.mode-god::after { content: "👑 不敗神話"; position: absolute; top: 12px; right: 12px; background: black; color: #fff; font-size: 11px; font-weight: 900; padding: 4px 8px; border-radius: 6px; border: 1px solid #ff007f; }
         .card.mode-cool { border-color: var(--color-cool); box-shadow: 0 0 15px rgba(255,204,0,0.3); }
         .card.mode-cool::after { content: "🥇 覇者"; position: absolute; top: 12px; right: 12px; background: var(--color-cool); color: #000; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
         .card.mode-draw { border-color: var(--color-draw); }
@@ -64,6 +64,10 @@
         .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; color: #48484a; }
         .form-control { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #e5e5ea; border-radius: var(--border-radius-small); background: #fafafa; outline: none; }
         
+        .dynamic-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .skill-tag { display: inline-block; background: var(--color-cool); color: #000; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-right: 6px; margin-bottom: 6px; }
+        .weakness-tag { display: inline-block; background: #3a3a3c; color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-right: 6px; margin-bottom: 6px; }
+
         .image-list-builder { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
         .image-thumb-box { position: relative; aspect-ratio: 1; border: 1px solid #e5e5ea; border-radius: 8px; overflow: hidden; background: #fff; }
         .image-thumb-box img { width: 100%; height: 100%; object-fit: contain; }
@@ -75,7 +79,9 @@
 
         .dynamic-history-row { background: #f2f2f7; padding: 12px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #e5e5ea; }
         .history-card { background: #fff; padding: 16px; border-radius: 14px; margin-bottom: 16px; border: 2px solid #e5e5ea; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-        .history-title-large { font-size: 32px; font-weight: 900; text-align: center; margin-bottom: 10px; letter-spacing: 1px; }
+        .history-title-large { font-size: 26px; font-weight: 900; text-align: center; margin-bottom: 4px; letter-spacing: 1px; }
+        .battle-title-display { font-size: 20px; font-weight: 900; text-align: center; margin-bottom: 12px; color: #1c1c1e; border-bottom: 2px solid #e5e5ea; padding-bottom: 8px; }
+        
         .history-card.result-WIN .history-title-large { color: #ffcc00; text-shadow: 0 0 8px rgba(255,204,0,0.4); }
         .history-card.result-LOSE .history-title-large { color: #8e8e93; }
         .history-card.result-DRAW .history-title-large { color: #34c759; }
@@ -116,7 +122,7 @@
                 <input type="hidden" id="itemId">
                 
                 <div class="form-group">
-                    <label>キャラクター画像（高画質のまま完全保存）</label>
+                    <label>キャラクター画像</label>
                     <button type="button" class="btn btn-secondary" style="width:100%; padding:12px; border:1px dashed #ccc;" id="addMainImgBtn">📷 画像を追加する</button>
                     <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="addMainImage(event)">
                     <div id="formImagesContainer" class="image-list-builder"></div>
@@ -143,6 +149,20 @@
                         <input type="number" id="statSpd" class="form-control" placeholder="SPD" value="50" max="100">
                         <input type="number" id="statInt" class="form-control" placeholder="INT" value="50" max="100">
                     </div>
+                </div>
+
+                <div class="form-group" style="margin-top:20px; background:#fafafa; padding:12px; border-radius:12px; border:1px solid #e5e5ea;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <label style="margin:0;">🔥 必殺技（複数追加可）</label>
+                        <button type="button" class="btn btn-primary" style="padding:4px 10px; font-size:12px;" onclick="addSkillRow()">＋追加</button>
+                    </div>
+                    <div id="formSkillsContainer"></div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; margin-top:16px;">
+                        <label style="margin:0;">⚠️ 弱点（複数追加可）</label>
+                        <button type="button" class="btn btn-primary" style="padding:4px 10px; font-size:12px; background:#3a3a3c;" onclick="addWeaknessRow()">＋追加</button>
+                    </div>
+                    <div id="formWeaknessesContainer"></div>
                 </div>
 
                 <div class="form-group" style="margin-top:20px;">
@@ -180,7 +200,9 @@
                 <div style="flex:1; background:#f2f2f7; padding:8px; border-radius:10px;"><span id="detailLosses" style="font-size:20px; font-weight:900; color:var(--danger-color);">0</span><br><span style="font-size:10px; color:var(--text-sub);">LOSSES</span></div>
             </div>
 
-            <div id="detailStatsBox" style="background:#f2f2f7; padding:12px; border-radius:14px; margin-bottom:20px;"></div>
+            <div id="detailStatsBox" style="background:#f2f2f7; padding:12px; border-radius:14px; margin-bottom:16px;"></div>
+
+            <div id="detailSkillsWeaknesses" style="margin-bottom:20px;"></div>
 
             <h3 style="font-size:15px; font-weight:800; margin-bottom:10px;">📜 過去の戦闘ログ</h3>
             <div id="detailHistoryContainer"></div>
@@ -193,7 +215,6 @@
     </div>
 
     <script>
-        // 🚀 エラー回避のため、どんなブラウザでも保存できるArrayBuffer用DBを新設
         const DB_NAME = "CosfiSafeDB_V1"; 
         const STORE_NAME = "fighters";
         let db = null;
@@ -239,21 +260,17 @@
                     }
                 };
                 request.onsuccess = (e) => { db = e.target.result; fetchAll(); };
-                request.onerror = (e) => { alert("データベースの起動に失敗しました。プライベートブラウズを解除してお試しください。"); };
+                request.onerror = (e) => { alert("データベースの起動に失敗しました。"); };
             } catch(e) { alert("環境によりデータ保存ができません。"); }
         }
 
-        // 🛠️ 画像データの安全な変換ツール（画質劣化0%）
         async function processImageForStorage(fileOrBlob) {
             if (!fileOrBlob) return null;
-            if (fileOrBlob.buffer) return fileOrBlob; // 既に変換済みの場合
+            if (fileOrBlob.buffer) return fileOrBlob; 
             try {
                 const buffer = await fileOrBlob.arrayBuffer();
                 return { buffer: buffer, type: fileOrBlob.type };
-            } catch(e) {
-                console.error("画像変換エラー:", e);
-                return null;
-            }
+            } catch(e) { return null; }
         }
 
         function restoreImageToBlob(data) {
@@ -267,18 +284,14 @@
             if(!db) return;
             const transaction = db.transaction(STORE_NAME, "readonly");
             transaction.objectStore(STORE_NAME).getAll().onsuccess = (e) => {
-                
-                // キャッシュ削除（メモリ節約）
                 charData.forEach(c => {
                     if(c._cachedUrls) c._cachedUrls.forEach(u => URL.revokeObjectURL(u));
                     if(c.histories) c.histories.forEach(h => { if(h._cachedUrl) URL.revokeObjectURL(h._cachedUrl); });
                 });
 
-                // ★ここで過去のバグも修正済。確実にデータを取得
                 charData = e.target.result || [];
 
                 charData.forEach(c => {
-                    // 保存したバイナリデータから表示用のBlobを復元
                     c._restoredBlobs = (c.images || []).map(restoreImageToBlob).filter(b => b);
                     c._cachedUrls = c._restoredBlobs.map(b => URL.createObjectURL(b));
 
@@ -294,14 +307,15 @@
             };
         }
 
+        // 🌟 奈落の条件をアップデート（全敗じゃなくても、負けが勝ちの2倍以上なら奈落）
         function getModeClass(w, l) {
             if(w === 0 && l === 0) return 'mode-none';
             if(w > 0 && l === 0) return 'mode-god';
             if(w > l) return 'mode-cool';
             if(w === l) return 'mode-draw';
-            if(w < l && w > 0) return 'mode-struggle';
-            if(l > 0 && w === 0) return 'mode-abyss';
-            return '';
+            // 負けが勝ちの2倍以上の場合（例：1勝2敗、2勝4敗など）は奈落に落ちる
+            if(l >= w * 2 && l > 0) return 'mode-abyss';
+            return 'mode-struggle';
         }
 
         function renderList() {
@@ -354,6 +368,23 @@
             });
         }
 
+        // 🔥 必殺技と弱点の入力欄を追加する関数
+        function addSkillRow(val = '') {
+            const container = document.getElementById('formSkillsContainer');
+            const row = document.createElement('div');
+            row.className = 'dynamic-row skill-row';
+            row.innerHTML = `<input type="text" class="form-control skill-input" placeholder="必殺技名" value="${escapeHtml(val)}"><button type="button" class="btn btn-danger" onclick="this.parentElement.remove()" style="padding:0 12px;">✕</button>`;
+            container.appendChild(row);
+        }
+
+        function addWeaknessRow(val = '') {
+            const container = document.getElementById('formWeaknessesContainer');
+            const row = document.createElement('div');
+            row.className = 'dynamic-row weakness-row';
+            row.innerHTML = `<input type="text" class="form-control weakness-input" placeholder="弱点" value="${escapeHtml(val)}"><button type="button" class="btn btn-danger" onclick="this.parentElement.remove()" style="padding:0 12px;">✕</button>`;
+            container.appendChild(row);
+        }
+
         function addHistoryRow(data = null) {
             const container = document.getElementById('formHistoryContainer');
             const row = document.createElement('div');
@@ -366,6 +397,9 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <span style="font-size:12px; font-weight:800; color:var(--accent-color);">対戦ログ</span>
                     <button type="button" class="btn btn-danger del-row-btn" style="padding:2px 6px; font-size:11px;">削除</button>
+                </div>
+                <div class="form-group" style="margin-bottom:8px;">
+                    <input type="text" class="form-control history-battle-title" placeholder="戦闘の題名 (例: 宿命のライバルとの死闘)" value="${escapeHtml(data?.battleTitle || '')}">
                 </div>
                 <div class="form-group">
                     <select class="form-control history-result">
@@ -405,7 +439,6 @@
             container.appendChild(row);
         }
 
-        // 🚀 保存処理を「エラーが起きないバイナリ変換方式」へ変更
         async function saveItem() {
             if (!db) { alert("データベースに接続されていません。"); return; }
             
@@ -418,24 +451,26 @@
                     return;
                 }
 
-                // 保存中はボタンを押せなくして二重エラーを防止
                 const submitBtn = document.getElementById('submitDataBtn');
                 submitBtn.textContent = "高画質で保存中...";
                 submitBtn.disabled = true;
 
-                // メイン画像を安全なバイナリ形式に変換
+                // 必殺技と弱点データを取得
+                const skills = Array.from(document.querySelectorAll('.skill-input')).map(input => input.value.trim()).filter(v => v);
+                const weaknesses = Array.from(document.querySelectorAll('.weakness-input')).map(input => input.value.trim()).filter(v => v);
+
                 const processedImages = [];
                 for (let img of currentImages) {
                     const processed = await processImageForStorage(img.blob);
                     if(processed) processedImages.push(processed);
                 }
 
-                // 履歴画像を安全なバイナリ形式に変換
                 const historyRows = document.querySelectorAll('.dynamic-history-row');
                 const battleHistories = [];
                 for (let row of historyRows) {
                     const processed = await processImageForStorage(row._blob);
                     battleHistories.push({
+                        battleTitle: row.querySelector('.history-battle-title').value.trim(),
                         result: row.querySelector('.history-result').value,
                         image: processed,
                         text: row.querySelector('.history-text').value
@@ -451,6 +486,8 @@
                     def: Number(document.getElementById('statDef').value) || 50,
                     spd: Number(document.getElementById('statSpd').value) || 50,
                     int: Number(document.getElementById('statInt').value) || 50,
+                    skills: skills,
+                    weaknesses: weaknesses,
                     images: processedImages,
                     histories: battleHistories
                 };
@@ -466,19 +503,16 @@
                 }
 
                 trans.oncomplete = () => { 
-                    alert("🎉 エラーなし！最高画質のまま図鑑に保存しました！");
                     closeModal('formModal'); 
                     fetchAll(); 
                 };
-                
                 trans.onerror = (err) => {
-                    alert("❌ ブラウザの制限により保存に失敗しました: " + err.target.error.message);
+                    alert("❌ 保存に失敗しました: " + err.target.error.message);
                 };
 
             } catch (error) {
                 alert("⚠️ システムエラーが発生しました:\n" + error.message);
             } finally {
-                // ボタンを元に戻す
                 const submitBtn = document.getElementById('submitDataBtn');
                 submitBtn.textContent = "データに保存";
                 submitBtn.disabled = false;
@@ -511,6 +545,18 @@
                 <div class="status-bar-bg"><div class="status-bar-fill" style="width:${s.val}%; background:${s.col}"></div></div>
             `).join('');
 
+            // 🌟 必殺技・弱点の表示
+            let swHtml = '';
+            if(c.skills && c.skills.length > 0) {
+                swHtml += `<div style="margin-bottom:12px;"><div style="font-size:13px; font-weight:800; margin-bottom:6px;">🔥 必殺技</div>` + 
+                          c.skills.map(s => `<span class="skill-tag">${escapeHtml(s)}</span>`).join('') + `</div>`;
+            }
+            if(c.weaknesses && c.weaknesses.length > 0) {
+                swHtml += `<div><div style="font-size:13px; font-weight:800; margin-bottom:6px;">⚠️ 弱点</div>` + 
+                          c.weaknesses.map(w => `<span class="weakness-tag">${escapeHtml(w)}</span>`).join('') + `</div>`;
+            }
+            document.getElementById('detailSkillsWeaknesses').innerHTML = swHtml;
+
             const histContainer = document.getElementById('detailHistoryContainer');
             histContainer.innerHTML = '';
             if(!c.histories || c.histories.length === 0) {
@@ -521,8 +567,12 @@
                     hCard.className = `history-card result-${h.result}`;
                     let imgHtml = h._cachedUrl ? `<div class="history-img-box"><img src="${h._cachedUrl}"></div>` : '';
 
+                    // ⚔️ 戦闘の題名表示を追加
+                    let titleHtml = h.battleTitle ? `<div class="battle-title-display">${escapeHtml(h.battleTitle)}</div>` : '';
+
                     hCard.innerHTML = `
                         <div class="history-title-large">${h.result === 'WIN' ? 'VICTORY' : h.result === 'LOSE' ? 'DEFEAT' : 'DRAW'}</div>
+                        ${titleHtml}
                         ${imgHtml}
                         <div style="font-size:14px; color:#2c2c2e; white-space:pre-wrap; line-height:1.4;">${escapeHtml(h.text || '（詳細内容なし）')}</div>
                     `;
@@ -564,6 +614,12 @@
             document.getElementById('statSpd').value = c.spd;
             document.getElementById('statInt').value = c.int;
 
+        　　document.getElementById('formSkillsContainer').innerHTML = '';
+            if(c.skills) c.skills.forEach(s => addSkillRow(s));
+            
+            document.getElementById('formWeaknessesContainer').innerHTML = '';
+            if(c.weaknesses) c.weaknesses.forEach(w => addWeaknessRow(w));
+
             currentImages = (c._restoredBlobs || []).map((b, idx) => ({ blob: b, url: c._cachedUrls[idx] }));
             renderFormImages();
 
@@ -584,9 +640,17 @@
             document.getElementById('statDef').value = 50;
             document.getElementById('statSpd').value = 50;
             document.getElementById('statInt').value = 50;
+            
+            document.getElementById('formSkillsContainer').innerHTML = '';
+            document.getElementById('formWeaknessesContainer').innerHTML = '';
             currentImages = [];
             document.getElementById('formImagesContainer').innerHTML = '';
             document.getElementById('formHistoryContainer').innerHTML = '';
+            
+            // 初めから入力欄を1つずつ用意しておく
+            addSkillRow();
+            addWeaknessRow();
+
             openModal('formModal');
         }
 
