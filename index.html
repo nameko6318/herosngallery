@@ -3,35 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>コスファイ キャラクター図鑑</title>
+    <title>コスファイ図鑑 - 戦記版</title>
     <style>
-        /* --- デザインシステム & 変数 --- */
         :root {
-            --bg-color: #f2f2f7; /* iOS Light Gray */
+            --bg-color: #f2f2f7;
             --card-bg: #ffffff;
             --text-main: #1c1c1e;
             --text-sub: #8e8e93;
-            --accent-color: #af52de; /* キャラクター図鑑風にパープルアクセント */
+            --accent-color: #af52de;
+            --win-color: #ffcc00; /* ゴールド */
+            --lose-color: #7a7a7a; /* グレー */
+            --draw-color: #34c759; /* グリーン */
             --danger-color: #ff3b30;
             --border-radius-large: 18px;
             --border-radius-small: 12px;
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
-            
-            /* ステータスカラー */
+
             --color-atk: #ff453a;
             --color-def: #30d158;
             --color-spd: #0a84ff;
             --color-int: #ffd60a;
         }
 
-        /* --- 全体リセット --- */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -39,702 +34,356 @@
             color: var(--text-main);
             padding-top: calc(60px + var(--safe-top));
             padding-bottom: calc(80px + var(--safe-bottom));
-            line-height: 1.5;
         }
 
-        /* --- ヘッダー --- */
         header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: calc(60px + var(--safe-top));
-            padding-top: var(--safe-top);
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-left: 16px;
-            padding-right: 16px;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            z-index: 100;
+            position: fixed; top: 0; left: 0; right: 0; height: calc(60px + var(--safe-top));
+            padding-top: var(--safe-top); background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            display: flex; align-items: center; justify-content: space-between;
+            padding-left: 16px; padding-right: 16px; border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 100;
         }
 
-        header h1 {
-            font-size: 18px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-        }
-
-        /* --- ボタン共通 --- */
-        .btn {
-            border: none;
-            background: none;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--accent-color);
-            cursor: pointer;
-            padding: 8px 14px;
-            border-radius: var(--border-radius-small);
-            transition: opacity 0.2s;
-        }
-        .btn:active { opacity: 0.5; }
-        .btn-primary {
-            background-color: var(--accent-color);
-            color: white;
-        }
+        .btn { border: none; background: none; font-size: 16px; font-weight: 600; color: var(--accent-color); padding: 8px 14px; border-radius: var(--border-radius-small); cursor: pointer; }
+        .btn-primary { background-color: var(--accent-color); color: white; }
         .btn-danger { color: var(--danger-color); }
 
-        /* --- メインコンテンツ --- */
-        main {
-            padding: 16px;
-            max-width: 500px; /* スマホで見やすい横幅に制限 */
-            margin: 0 auto;
-        }
+        main { padding: 16px; max-width: 500px; margin: 0 auto; }
+        .search-input { width: 100%; padding: 14px 16px; font-size: 16px; border: none; background-color: rgba(142, 142, 147, 0.15); border-radius: var(--border-radius-small); outline: none; margin-bottom: 16px; }
 
-        /* 検索バー */
-        .search-container { margin-bottom: 16px; }
-        .search-input {
-            width: 100%;
-            padding: 14px 16px;
-            font-size: 16px; /* ズームバグ防止 */
-            border: none;
-            background-color: rgba(142, 142, 147, 0.15);
-            border-radius: var(--border-radius-small);
-            outline: none;
-        }
+        /* --- リスト表示 --- */
+        .list-container { display: flex; flex-direction: column; gap: 24px; }
 
-        .meta-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-            color: var(--text-sub);
-            margin-bottom: 16px;
-            padding: 0 4px;
-        }
-
-        /* --- 1列大型リストレイアウト --- */
-        .list-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* カード（画像全体表示・見切れない設計） */
         .card {
-            background: var(--card-bg);
-            border-radius: var(--border-radius-large);
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
-            display: flex;
-            flex-direction: column;
+            background: var(--card-bg); border-radius: var(--border-radius-large); overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; transition: all 0.3s ease;
         }
-        .card:active {
-            transform: scale(0.98);
-            transition: transform 0.1s;
+
+        /* --- 勝ち数が多い時の演出（覇者） --- */
+        .card.cool-mode {
+            border: 3px solid var(--win-color);
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.4);
         }
-        
-        /* 画像エリア：見切れを完全に防ぐ */
+        .card.cool-mode::after {
+            content: "👑 覇者"; position: absolute; top: 10px; right: 10px;
+            background: var(--win-color); color: #000; font-size: 12px; font-weight: 800;
+            padding: 4px 8px; border-radius: 6px; z-index: 10;
+        }
+
+        /* --- 負け数が多い時の演出（不様） --- */
+        .card.shame-mode {
+            filter: grayscale(0.5) sepia(0.2);
+            border: 2px solid #555;
+        }
+        .card.shame-mode::after {
+            content: "💀 敗北者"; position: absolute; top: 10px; right: 10px;
+            background: #000; color: #fff; font-size: 10px; font-weight: 800;
+            padding: 4px 8px; border-radius: 6px; z-index: 10; opacity: 0.7;
+        }
+
         .card-img-wrapper {
-            position: relative;
-            width: 100%;
-            height: 320px; /* しっかり大きなサイズを確保 */
-            background-color: #1c1c1e; /* 画像の背後をダークにして引き締める */
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 100%; height: 320px; background-color: #ffffff; /* 背景を白に修正 */
+            display: flex; align-items: center; justify-content: center;
         }
-        .card img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain; /* 縦横比を維持して全体を収める */
-        }
-        
+        .card img { width: 100%; height: 100%; object-fit: contain; }
         .card-info { padding: 16px; }
-        .card-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
-        .card-theme {
-            display: inline-block;
-            font-size: 12px;
-            font-weight: 600;
-            background: rgba(175, 82, 222, 0.1);
-            color: var(--accent-color);
-            padding: 2px 8px;
-            border-radius: 4px;
-        }
+        .card-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+        .card-stats-summary { font-size: 13px; font-weight: 700; color: var(--text-sub); }
 
-        /* --- モーダル共通 --- */
-        .modal {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 200;
-            display: flex;
-            align-items: flex-end;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
+        /* --- モーダル --- */
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 200; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal.active { opacity: 1; pointer-events: auto; }
-        .modal-content {
-            width: 100%;
-            background: var(--card-bg);
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
-            padding: 20px 20px calc(24px + var(--safe-bottom)) 20px;
-            max-height: 90vh;
-            overflow-y: auto;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-        }
+        .modal-content { width: 100%; background: var(--card-bg); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 20px 20px calc(30px + var(--safe-bottom)); max-height: 90vh; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s; }
         .modal.active .modal-content { transform: translateY(0); }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #f2f2f7;
-        }
-        .modal-title { font-size: 18px; font-weight: 800; }
-
-        /* --- 入力フォーム --- */
+        
+        /* --- フォームと詳細表示 --- */
         .form-group { margin-bottom: 16px; }
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-        .form-control {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid #e5e5ea;
-            border-radius: var(--border-radius-small);
-            background: #post-bg;
-            background: #fafafa;
-            outline: none;
-        }
-        .form-control:focus { border-color: var(--accent-color); }
-        textarea.form-control { height: 80px; resize: none; }
-        
-        /* ステータス入力用の2列グリッド */
-        .status-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
+        .form-group label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+        .form-control { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #e5e5ea; border-radius: var(--border-radius-small); background: #fafafa; outline: none; }
+        textarea.form-control { height: 100px; }
 
-        /* 画像ピッカー */
-        .image-picker {
-            width: 100%;
-            height: 200px;
-            border: 2px dashed #c7c7cc;
-            border-radius: var(--border-radius-large);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            background: #f2f2f7;
-        }
-        .image-picker img { width: 100%; height: 100%; object-fit: contain; position: absolute; background: #1c1c1e; }
-        .image-picker span { color: var(--text-sub); font-size: 14px; font-weight: 600; z-index: 1; text-align: center; padding: 10px; }
+        .image-picker { width: 100%; height: 200px; border: 2px dashed #ccc; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; cursor: pointer; }
+        .image-picker img { width: 100%; height: 100%; object-fit: contain; background: #fff; }
 
-        /* --- 詳細モーダル用装飾 --- */
-        .detail-img-box {
-            width: 100%;
-            height: 350px;
-            background: #1c1c1e;
-            border-radius: var(--border-radius-large);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            margin-bottom: 16px;
-        }
+        /* 詳細用装飾 */
+        .detail-img-box { width: 100%; height: 350px; background: #fff; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 1px solid #f2f2f7; }
         .detail-img-box img { width: 100%; height: 100%; object-fit: contain; }
-        
-        /* ステータス表示（メーターバー） */
-        .detail-status-section {
-            background: #f2f2f7;
-            padding: 14px;
-            border-radius: var(--border-radius-large);
-            margin-bottom: 16px;
-        }
-        .status-bar-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 700;
-        }
-        .status-bar-row:last-child { margin-bottom: 0; }
-        .status-label { width: 45px; }
-        .status-bar-bg {
-            flex: 1;
-            height: 12px;
-            background: #e5e5ea;
-            border-radius: 6px;
-            margin: 0 12px;
-            overflow: hidden;
-        }
-        .status-bar-fill {
-            height: 100%;
-            width: 0%;
-            border-radius: 6px;
-            transition: width 0.5s ease-out;
-        }
-        .status-num { width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
 
-        /* テキスト解説用セクション */
-        .info-block {
-            margin-bottom: 16px;
-            padding: 12px 4px;
-            border-bottom: 1px solid #f2f2f7;
-        }
-        .info-block-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--accent-color);
-            margin-bottom: 4px;
-            text-transform: uppercase;
-        }
-        .info-block-text { font-size: 15px; color: #3a3a3c; white-space: pre-wrap; }
+        /* 戦績表示 */
+        .record-box { display: flex; gap: 10px; margin-bottom: 20px; text-align: center; }
+        .record-item { flex: 1; padding: 10px; border-radius: 12px; background: #f2f2f7; }
+        .record-val { font-size: 24px; font-weight: 900; display: block; }
+        .record-label { font-size: 12px; color: var(--text-sub); }
 
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); font-size: 14px; }
+        /* 戦闘履歴（特大表示） */
+        .history-header { font-size: 48px; font-weight: 900; text-align: center; letter-spacing: -1px; margin-bottom: 10px; }
+        .history-win { color: var(--win-color); text-shadow: 0 0 10px rgba(255,204,0,0.3); }
+        .history-lose { color: var(--lose-color); filter: grayscale(1); }
+        .history-draw { color: var(--draw-color); }
+
+        .info-block { background: #f9f9f9; padding: 16px; border-radius: 12px; margin-bottom: 16px; border-left: 4px solid var(--accent-color); }
+        .info-title { font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 5px; }
+        .info-text { font-size: 15px; color: #333; white-space: pre-wrap; }
+
+        .status-bar-bg { width: 100%; height: 8px; background: #e5e5ea; border-radius: 4px; overflow: hidden; margin: 4px 0 12px; }
+        .status-bar-fill { height: 100%; width: 0; transition: width 0.6s ease; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1 onclick="scrollToTop()">⚡ コスファイ図鑑</h1>
-        <button class="btn" onclick="openFormModal()">＋登録</button>
+        <h1 onclick="location.reload()">⚔️ コスファイ戦記</h1>
+        <button class="btn btn-primary" onclick="openFormModal()">新規参戦</button>
     </header>
 
     <main>
-        <div class="search-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="名前、テーマ、能力から検索..." oninput="renderList()">
-        </div>
-
-        <div class="meta-info">
-            <span id="itemCount">0 人のキャラクター</span>
-            <div>
-                <span style="cursor:pointer; color:var(--accent-color); font-weight:600;" onclick="exportData()">保存(書き出し)</span>
-                <span style="color:#c7c7cc; margin:0 4px;">|</span>
-                <span style="cursor:pointer; color:var(--accent-color); font-weight:600;" onclick="triggerImport()">読込</span>
-                <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
-            </div>
-        </div>
-
+        <input type="text" id="searchInput" class="search-input" placeholder="名前・戦績・能力を検索..." oninput="renderList()">
+        
+        <div id="itemCount" style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">0 Fighters</div>
         <div id="listContainer" class="list-container"></div>
-        <div id="emptyState" class="empty-state" style="display:none;">
-            登録されているキャラクターがいません。<br>右上の「＋登録」から作成してください！
-        </div>
     </main>
 
-    <div id="formModal" class="modal" onclick="if(e.target.id==='formModal')closeModal('formModal')">
+    <div id="formModal" class="modal" onclick="if(event.target.id==='formModal')closeModal('formModal')">
         <div class="modal-content">
             <div class="modal-header">
                 <span class="modal-title" id="formTitle">キャラクター登録</span>
-                <button class="btn" onclick="closeModal('formModal')">閉じる</button>
+                <button class="btn" onclick="closeModal('formModal')">戻る</button>
             </div>
             <form id="zukanForm" onsubmit="saveItem(event)">
                 <input type="hidden" id="itemId">
-                
                 <div class="form-group">
-                    <label>キャラクター画像（全体表示）</label>
+                    <label>全身画像</label>
                     <div class="image-picker" onclick="document.getElementById('fileInput').click()">
-                        <span id="pickerText">📸 タップして撮影・ライブラリから選択</span>
+                        <span id="pickerText">画像をアップロード</span>
                         <img id="previewImg" src="" style="display:none;">
                     </div>
                     <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="previewImage(event)">
                 </div>
-
                 <div class="form-group">
                     <label>名前・二つ名</label>
-                    <input type="text" id="itemTitle" class="form-control" placeholder="例: 爆炎の魔女 マリカ" required>
+                    <input type="text" id="itemTitle" class="form-control" placeholder="例: 虚ろの蒼 ギルバート" required>
                 </div>
-
                 <div class="form-group">
                     <label>テーマ</label>
-                    <input type="text" id="itemTheme" class="form-control" list="themeOptions" placeholder="選択または直接入力...">
-                    <datalist id="themeOptions">
-                        <option value="魔法少女">
-                        <option value="サイボーグ">
-                        <option value="中華拳法">
-                        <option value="重騎士">
-                        <option value="サイバー忍者">
-                        <option value="大悪魔">
-                    </datalist>
+                    <input type="text" id="itemTheme" class="form-control" placeholder="例: サイバー忍者">
                 </div>
-
+                <div class="form-group" style="display:flex; gap:10px;">
+                    <div style="flex:1;"><label>勝ち数</label><input type="number" id="winCount" class="form-control" value="0"></div>
+                    <div style="flex:1;"><label>負け数</label><input type="number" id="lossCount" class="form-control" value="0"></div>
+                </div>
                 <div class="form-group">
-                    <label>ステータス (0〜100)</label>
-                    <div class="status-grid">
-                        <input type="number" id="statAtk" class="form-control" placeholder="ATK (物理・魔法攻撃)" min="0" max="100">
-                        <input type="number" id="statDef" class="form-control" placeholder="DEF (防御力)" min="0" max="100">
-                        <input type="number" id="statSpd" class="form-control" placeholder="SPD (素早さ)" min="0" max="100">
-                        <input type="number" id="statInt" class="form-control" placeholder="INT (賢さ・戦術精神)" min="0" max="100">
+                    <label>直近の戦闘結果</label>
+                    <select id="lastResult" class="form-control">
+                        <option value="WIN">勝利 (VICTORY)</option>
+                        <option value="LOSE">敗北 (DEFEAT)</option>
+                        <option value="DRAW">引き分け (DRAW)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>詳細な戦闘履歴（物語）</label>
+                    <textarea id="battleLog" class="form-control" placeholder="過去の戦いのエピソードを記述..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>ステータス (ATK / DEF / SPD / INT)</label>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <input type="number" id="statAtk" class="form-control" placeholder="ATK" value="50">
+                        <input type="number" id="statDef" class="form-control" placeholder="DEF" value="50">
+                        <input type="number" id="statSpd" class="form-control" placeholder="SPD" value="50">
+                        <input type="number" id="statInt" class="form-control" placeholder="INT" value="50">
                     </div>
                 </div>
-
-                <div class="form-group">
-                    <label>特殊能力 (戦闘スタイル/バフなど)</label>
-                    <textarea id="itemAbility" class="form-control" placeholder="例: HPが30%以下になると攻撃力が2倍になる。"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>必殺技 (一発逆転の大技)</label>
-                    <textarea id="itemSpecial" class="form-control" placeholder="例: メテオ・ストライク（全画面範囲の極大火属性魔法）"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>弱点 (攻略の鍵)</label>
-                    <textarea id="itemWeakness" class="form-control" placeholder="例: 水属性の攻撃に極端に弱い。虫が苦手で動けなくなる。"></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-primary" style="width:100%; padding:14px; font-size:16px; margin-top:10px;">データを保存する</button>
+                <button type="submit" class="btn btn-primary" style="width:100%; padding:16px; margin-top:10px;">刻銘を保存</button>
             </form>
         </div>
     </div>
 
-    <div id="detailModal" class="modal" onclick="if(e.target.id==='detailModal')closeModal('detailModal')">
+    <div id="detailModal" class="modal" onclick="if(event.target.id==='detailModal')closeModal('detailModal')">
         <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-title" id="detailTitleName">キャラクター詳細</span>
-                <button class="btn" onclick="closeModal('detailModal')">閉じる</button>
-            </div>
+            <div id="historyHeader" class="history-header">RESULT</div>
+            <div class="detail-img-box"><img id="detailImg" src=""></div>
             
-            <div class="detail-img-box">
-                <img id="detailImg" src="" alt="キャラクター">
+            <h2 id="detailName" style="font-size:24px; font-weight:900; margin-bottom:5px;">名前</h2>
+            <div id="detailTheme" style="font-size:14px; color:var(--accent-color); font-weight:700; margin-bottom:20px;">テーマ</div>
+
+            <div class="record-box">
+                <div class="record-item" style="color:var(--win-color);"><span id="detailWins" class="record-val">0</span><span class="record-label">WINS</span></div>
+                <div class="record-item" style="color:var(--lose-color);"><span id="detailLosses" class="record-val">0</span><span class="record-label">LOSSES</span></div>
             </div>
 
-            <div style="margin-bottom:12px;"><span id="detailTheme" class="card-theme">テーマ名</span></div>
-            
-            <div class="detail-status-section">
-                <div class="status-bar-row">
-                    <span class="status-label" style="color:var(--color-atk);">ATK</span>
-                    <div class="status-bar-bg"><div id="barAtk" class="status-bar-fill" style="background:var(--color-atk);"></div></div>
-                    <span id="numAtk" class="status-num">0</span>
+            <div id="statSection" style="margin-bottom:20px;">
                 </div>
-                <div class="status-bar-row">
-                    <span class="status-label" style="color:var(--color-def);">DEF</span>
-                    <div class="status-bar-bg"><div id="barDef" class="status-bar-fill" style="background:var(--color-def);"></div></div>
-                    <span id="numDef" class="status-num">0</span>
-                </div>
-                <div class="status-bar-row">
-                    <span class="status-label" style="color:var(--color-spd);">SPD</span>
-                    <div class="status-bar-bg"><div id="barSpd" class="status-bar-fill" style="background:var(--color-spd);"></div></div>
-                    <span id="numSpd" class="status-num">0</span>
-                </div>
-                <div class="status-bar-row">
-                    <span class="status-label" style="color:var(--color-int);">INT</span>
-                    <div class="status-bar-bg"><div id="barInt" class="status-bar-fill" style="background:var(--color-int);"></div></div>
-                    <span id="numInt" class="status-num">0</span>
-                </div>
-            </div>
 
             <div class="info-block">
-                <div class="info-block-title">⚔️ 特殊能力 (戦闘スタイル・バフ)</div>
-                <div id="detailAbility" class="info-block-text"></div>
+                <div class="info-title">HISTORY LOG</div>
+                <div id="detailBattleLog" class="info-text">戦いの記録はありません。</div>
             </div>
-            <div class="info-block">
-                <div class="info-block-title">🔥 必殺技</div>
-                <div id="detailSpecial" class="info-block-text"></div>
-            </div>
-            <div class="info-block">
-                <div class="info-block-title">🎯 弱点</div>
-                <div id="detailWeakness" class="info-block-text"></div>
-            </div>
-            
-            <div style="display:flex; gap:12px; margin-top:20px;">
-                <button class="btn" style="flex:1; background:#e5e5ea; color:#1c1c1e;" id="editBtn">カード編集</button>
-                <button class="btn btn-danger" style="flex:1; background:rgba(255,59,48,0.1);" id="deleteBtn">データ削除</button>
+
+            <div style="display:flex; gap:10px;">
+                <button class="btn" style="flex:1; background:#eee;" id="editBtn">修整</button>
+                <button class="btn btn-danger" style="flex:1; background:#fff0f0;" id="deleteBtn">抹消</button>
             </div>
         </div>
     </div>
 
     <script>
-        const DB_NAME = "CosfiZukanDB";
-        const DB_VERSION = 1;
+        const DB_NAME = "CosfiBattleDB";
         const STORE_NAME = "characters";
         let db = null;
         let charData = [];
 
-        window.addEventListener('DOMContentLoaded', () => { initDB(); });
-
-        function initDB() {
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
+        window.onload = () => {
+            const request = indexedDB.open(DB_NAME, 1);
             request.onupgradeneeded = (e) => {
-                const database = e.target.result;
-                if (!database.objectStoreNames.contains(STORE_NAME)) {
-                    database.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
-                }
+                e.target.result.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
             };
-            request.onsuccess = (e) => { db = e.target.result; fetchItems(); };
-            request.onerror = () => { alert("データベースの起動に失敗しました。"); };
+            request.onsuccess = (e) => { db = e.target.result; fetchAll(); };
+        };
+
+        function fetchAll() {
+            const store = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME);
+            const req = store.getAll();
+            req.onsuccess = () => { charData = req.result; renderList(); };
         }
 
-        function fetchItems() {
-            const transaction = db.transaction([STORE_NAME], "readonly");
-            const store = transaction.objectStore(STORE_NAME);
-            const request = store.getAll();
-            request.onsuccess = () => { charData = request.result || []; renderList(); };
-        }
-
-        // 検索と一覧表示
         function renderList() {
             const container = document.getElementById('listContainer');
-            const emptyState = document.getElementById('emptyState');
-            const itemCount = document.getElementById('itemCount');
             const keyword = document.getElementById('searchInput').value.toLowerCase();
-
             container.innerHTML = "";
 
-            const filtered = charData.filter(c => {
-                return c.title.toLowerCase().includes(keyword) || 
-                       (c.theme && c.theme.toLowerCase().includes(keyword)) ||
-                       (c.ability && c.ability.toLowerCase().includes(keyword)) ||
-                       (c.special && c.special.toLowerCase().includes(keyword));
-            });
+            const filtered = charData.filter(c => c.title.toLowerCase().includes(keyword) || c.theme.toLowerCase().includes(keyword));
+            document.getElementById('itemCount').textContent = `${filtered.length} Fighters`;
 
-            itemCount.textContent = `${filtered.length} 人のキャラクター`;
-
-            if (filtered.length === 0) {
-                emptyState.style.display = "block";
-                return;
-            }
-            emptyState.style.display = "none";
-
-            // 新着順で表示
             filtered.sort((a,b) => b.id - a.id).forEach(c => {
                 const card = document.createElement('div');
-                card.className = 'card';
-                card.onclick = () => openDetailModal(c.id);
-
-                const imgSrc = c.image ? c.image : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%232c2c2e"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="10" fill="%238e8e93">NO IMAGE</text></svg>';
+                const winRate = c.wins > c.losses;
+                const shameMode = c.losses > c.wins;
+                
+                card.className = `card ${winRate ? 'cool-mode' : ''} ${shameMode ? 'shame-mode' : ''}`;
+                card.onclick = () => openDetail(c.id);
 
                 card.innerHTML = `
-                    <div class="card-img-wrapper">
-                        <img src="${imgSrc}" alt="${c.title}" loading="lazy">
-                    </div>
+                    <div class="card-img-wrapper"><img src="${c.image || 'https://via.placeholder.com/300?text=No+Image'}"></div>
                     <div class="card-info">
-                        <div class="card-title">${escapeHtml(c.title)}</div>
-                        <div class="card-theme">${escapeHtml(c.theme || '未設定')}</div>
+                        <div class="card-title">${c.title}</div>
+                        <div class="card-stats-summary">${c.wins}W - ${c.losses}L / Theme: ${c.theme}</div>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        // 高画質対応（MAX_SIZE = 2048px）の画像圧縮・読み込み処理
-        function previewImage(event) {
-            const file = event.target.files[0];
+        function previewImage(e) {
+            const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = (ev) => {
                 const img = new Image();
-                img.onload = function() {
+                img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    
-                    // 高画質キープのため、長辺の上限を2048pxに変更
-                    const MAX_SIZE = 2048;
-                    if (width > height) {
-                        if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
-                    } else {
-                        if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    // 画質(品質パラメータ)を0.85に向上
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
-                    
-                    const previewImg = document.getElementById('previewImg');
-                    const pickerText = document.getElementById('pickerText');
-                    previewImg.src = compressedBase64;
-                    previewImg.style.display = "block";
-                    pickerText.style.display = "none";
-                }
-                img.src = e.target.result;
+                    let w = img.width, h = img.height;
+                    const max = 1200;
+                    if(w > h) { if(w > max) { h *= max/w; w = max; } }
+                    else { if(h > max) { w *= max/h; h = max; } }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    const b64 = canvas.toDataURL('image/jpeg', 0.8);
+                    document.getElementById('previewImg').src = b64;
+                    document.getElementById('previewImg').style.display = "block";
+                    document.getElementById('pickerText').style.display = "none";
+                };
+                img.src = ev.target.result;
             };
             reader.readAsDataURL(file);
         }
 
-        // 保存
         function saveItem(e) {
             e.preventDefault();
-
             const id = document.getElementById('itemId').value;
             const item = {
                 title: document.getElementById('itemTitle').value,
                 theme: document.getElementById('itemTheme').value,
-                atk: Math.min(100, Math.max(0, Number(document.getElementById('statAtk').value) || 0)),
-                def: Math.min(100, Math.max(0, Number(document.getElementById('statDef').value) || 0)),
-                spd: Math.min(100, Math.max(0, Number(document.getElementById('statSpd').value) || 0)),
-                int: Math.min(100, Math.max(0, Number(document.getElementById('statInt').value) || 0)),
-                ability: document.getElementById('itemAbility').value,
-                special: document.getElementById('itemSpecial').value,
-                weakness: document.getElementById('itemWeakness').value,
-                image: document.getElementById('previewImg').style.display === "block" ? document.getElementById('previewImg').src : ""
+                wins: Number(document.getElementById('winCount').value),
+                losses: Number(document.getElementById('lossCount').value),
+                lastResult: document.getElementById('lastResult').value,
+                battleLog: document.getElementById('battleLog').value,
+                atk: document.getElementById('statAtk').value,
+                def: document.getElementById('statDef').value,
+                spd: document.getElementById('statSpd').value,
+                int: document.getElementById('statInt').value,
+                image: document.getElementById('previewImg').src
             };
-
-            const transaction = db.transaction([STORE_NAME], "readwrite");
-            const store = transaction.objectStore(STORE_NAME);
-
-            if (id) {
-                item.id = Number(id);
-                store.put(item);
-            } else {
-                store.add(item);
-            }
-
-            transaction.oncomplete = () => {
-                closeModal('formModal');
-                fetchItems();
-            };
+            const trans = db.transaction(STORE_NAME, "readwrite");
+            if (id) { item.id = Number(id); trans.objectStore(STORE_NAME).put(item); }
+            else { trans.objectStore(STORE_NAME).add(item); }
+            trans.oncomplete = () => { closeModal('formModal'); fetchAll(); };
         }
 
-        // 詳細画面表示（ステータスバー連動）
-        function openDetailModal(id) {
-            const c = charData.find(i => i.id === id);
-            if (!c) return;
+        function openDetail(id) {
+            const c = charData.find(x => x.id === id);
+            const head = document.getElementById('historyHeader');
+            head.textContent = c.lastResult || "RESULT";
+            head.className = "history-header " + 
+                (c.lastResult === 'WIN' ? 'history-win' : c.lastResult === 'LOSE' ? 'history-lose' : 'history-draw');
 
-            document.getElementById('detailTitleName').textContent = c.title;
-            document.getElementById('detailTheme').textContent = c.theme || '未設定';
-            document.getElementById('detailAbility').textContent = c.ability || 'なし';
-            document.getElementById('detailSpecial').textContent = c.special || 'なし';
-            document.getElementById('detailWeakness').textContent = c.weakness || 'なし';
-            
-            // 画像設定
-            const detailImg = document.getElementById('detailImg');
-            if(c.image) {
-                detailImg.src = c.image;
-                detailImg.parentElement.style.display = "flex";
-            } else {
-                detailImg.parentElement.style.display = "none";
-            }
+            document.getElementById('detailImg').src = c.image;
+            document.getElementById('detailName').textContent = c.title;
+            document.getElementById('detailTheme').textContent = c.theme;
+            document.getElementById('detailWins').textContent = c.wins;
+            document.getElementById('detailLosses').textContent = c.losses;
+            document.getElementById('detailBattleLog').textContent = c.battleLog || "戦闘記録はありません。";
 
-            // メーター数値と幅の反映 (最大値を100として計算)
-            document.getElementById('numAtk').textContent = c.atk;
-            document.getElementById('numDef').textContent = c.def;
-            document.getElementById('numSpd').textContent = c.spd;
-            document.getElementById('numInt').textContent = c.int;
+            const stats = [
+                {label: 'ATK', val: c.atk, col: 'var(--color-atk)'},
+                {label: 'DEF', val: c.def, col: 'var(--color-def)'},
+                {label: 'SPD', val: c.spd, col: 'var(--color-spd)'},
+                {label: 'INT', val: c.int, col: 'var(--color-int)'}
+            ];
+            document.getElementById('statSection').innerHTML = stats.map(s => `
+                <div style="font-size:12px; font-weight:800; display:flex; justify-content:space-between;">
+                    <span>${s.label}</span><span>${s.val}</span>
+                </div>
+                <div class="status-bar-bg"><div class="status-bar-fill" style="width:${s.val}%; background:${s.col}"></div></div>
+            `).join('');
 
-            // モーダルを開いてから少し遅らせてバーを伸ばす（アニメーション効果）
+            document.getElementById('editBtn').onclick = () => openEdit(c);
+            document.getElementById('deleteBtn').onclick = () => {
+                if(confirm("このキャラクターの存在を抹消しますか？")) {
+                    db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).delete(c.id).oncomplete = () => { closeModal('detailModal'); fetchAll(); };
+                }
+            };
             openModal('detailModal');
-            setTimeout(() => {
-                document.getElementById('barAtk').style.width = `${c.atk}%`;
-                document.getElementById('barDef').style.width = `${c.def}%`;
-                document.getElementById('barSpd').style.width = `${c.spd}%`;
-                document.getElementById('barInt').style.width = `${c.int}%`;
-            }, 50);
-
-            document.getElementById('editBtn').onclick = () => openEditForm(c);
-            document.getElementById('deleteBtn').onclick = () => deleteItem(c.id);
         }
 
-        function openEditForm(c) {
+        function openEdit(c) {
             closeModal('detailModal');
-            
-            document.getElementById('formTitle').textContent = "キャラクター編集";
+            document.getElementById('formTitle').textContent = "刻銘の修整";
             document.getElementById('itemId').value = c.id;
             document.getElementById('itemTitle').value = c.title;
             document.getElementById('itemTheme').value = c.theme;
+            document.getElementById('winCount').value = c.wins;
+            document.getElementById('lossCount').value = c.losses;
+            document.getElementById('lastResult').value = c.lastResult;
+            document.getElementById('battleLog').value = c.battleLog;
             document.getElementById('statAtk').value = c.atk;
             document.getElementById('statDef').value = c.def;
             document.getElementById('statSpd').value = c.spd;
             document.getElementById('statInt').value = c.int;
-            document.getElementById('itemAbility').value = c.ability;
-            document.getElementById('itemSpecial').value = c.special;
-            document.getElementById('itemWeakness').value = c.weakness;
-
-            const previewImg = document.getElementById('previewImg');
-            const pickerText = document.getElementById('pickerText');
-            if (c.image) {
-                previewImg.src = c.image;
-                previewImg.style.display = "block";
-                pickerText.style.display = "none";
-            } else {
-                previewImg.style.display = "none";
-                pickerText.style.display = "block";
-            }
-
+            document.getElementById('previewImg').src = c.image;
+            document.getElementById('previewImg').style.display = "block";
+            document.getElementById('pickerText').style.display = "none";
             openModal('formModal');
         }
 
-        function deleteItem(id) {
-            if (!confirm("このキャラクターデータを完全に消去しますか？")) return;
-            const transaction = db.transaction([STORE_NAME], "readwrite");
-            transaction.objectStore(STORE_NAME).delete(id);
-            transaction.oncomplete = () => { closeModal('detailModal'); fetchItems(); };
-        }
-
-        /* --- 共通UI補助 --- */
         function openFormModal() {
-            document.getElementById('formTitle').textContent = "キャラクター登録";
+            document.getElementById('formTitle').textContent = "キャラクター参戦";
             document.getElementById('itemId').value = "";
             document.getElementById('zukanForm').reset();
             document.getElementById('previewImg').style.display = "none";
             document.getElementById('pickerText').style.display = "block";
             openModal('formModal');
         }
-
         function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { 
-            document.getElementById(id).classList.remove('active');
-            // 詳細を閉じるときはメーターを0に戻しておく
-            if(id === 'detailModal') {
-                ['barAtk','barDef','barSpd','barInt'].forEach(b => document.getElementById(b).style.width = '0%');
-            }
-        }
-        function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        function escapeHtml(str) {
-            if(!str) return '';
-            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-        }
-
-        /* --- バックアップ（インポート/エクスポート） --- */
-        function exportData() {
-            if (charData.length === 0) { alert("エクスポートするデータがありません。"); return; }
-            const blob = new Blob([JSON.stringify(charData, null, 2)], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `cosfi_zukan_backup_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        function triggerImport() { document.getElementById('importFile').click(); }
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (!Array.isArray(imported)) throw new Error();
-                    if (!confirm(`${imported.length}件のキャラデータをインポート（追加・上書き）しますか？`)) return;
-
-                    const transaction = db.transaction([STORE_NAME], "readwrite");
-                    const store = transaction.objectStore(STORE_NAME);
-                    imported.forEach(item => { store.put(item); });
-                    transaction.oncomplete = () => { alert("インポート成功！"); fetchItems(); };
-                } catch (err) {
-                    alert("JSONファイルの形式が正しくありません。");
-                }
-            };
-            reader.readAsText(file);
-        }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
     </script>
 </body>
 </html>
