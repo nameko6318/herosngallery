@@ -2,660 +2,712 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Photo Memo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>マイ・コレクション図鑑</title>
     <style>
+        /* --- デザインシステム & 変数 --- */
         :root {
-            --bg-color: #f2f2f7;
+            --bg-color: #f5f7fa;
             --card-bg: #ffffff;
             --text-main: #1c1c1e;
             --text-sub: #8e8e93;
-            --primary: #007aff;
-            --danger: #ff3b30;
-            --border-color: #e5e5ea;
-            --radius: 16px;
+            --accent-color: #007aff; /* iOS Blue */
+            --danger-color: #ff3b30; /* iOS Red */
+            --border-radius-large: 16px;
+            --border-radius-small: 12px;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
+        /* --- 全体リセット --- */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            -webkit-tap-highlight-color: transparent;
+            -webkit-tap-highlight-color: transparent; /* タップ時の青枠消去 */
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-            padding-bottom: 100px;
-            min-height: 100vh;
+            padding-top: calc(60px + var(--safe-top));
+            padding-bottom: calc(80px + var(--safe-bottom));
+            line-height: 1.5;
         }
 
-        /* ヘッダー */
+        /* --- ヘッダー --- */
         header {
-            position: sticky;
+            position: fixed;
             top: 0;
-            background-color: rgba(255, 255, 255, 0.85);
+            left: 0;
+            right: 0;
+            height: calc(60px + var(--safe-top));
+            padding-top: var(--safe-top);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            padding: 16px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            padding-left: 16px;
+            padding-right: 16px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
             z-index: 100;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         header h1 {
             font-size: 20px;
             font-weight: 700;
-            letter-spacing: -0.5px;
         }
 
-        .header-actions {
+        .header-btns {
             display: flex;
-            gap: 8px;
+            gap: 12px;
         }
 
-        .btn-text {
-            background: none;
+        /* --- ボタン共通 --- */
+        .btn {
             border: none;
-            color: var(--primary);
-            font-size: 14px;
-            font-weight: 500;
-            padding: 8px 12px;
-            border-radius: 8px;
+            background: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent-color);
             cursor: pointer;
+            padding: 8px 12px;
+            border-radius: var(--border-radius-small);
+            transition: opacity 0.2s;
         }
-        
-        .btn-text:active {
-            background-color: rgba(0, 122, 255, 0.1);
+        .btn:active {
+            opacity: 0.5;
+        }
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .btn-danger {
+            color: var(--danger-color);
         }
 
-        /* メインコンテンツ */
-        .container {
+        /* --- メインコンテンツ --- */
+        main {
+            padding: 16px;
             max-width: 600px;
             margin: 0 auto;
-            padding: 16px;
         }
 
-        /* メモ一覧 */
-        .memo-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+        /* 検索バー */
+        .search-container {
+            margin-bottom: 16px;
         }
-
-        .memo-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-            display: flex;
-            flex-direction: column;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .memo-image-container {
+        .search-input {
             width: 100%;
-            aspect-ratio: 16 / 10;
-            background-color: #e5e5ea;
-            overflow: hidden;
+            padding: 12px 16px;
+            font-size: 16px; /* iOSの自動ズーム防止(16px以上必須) */
+            border: none;
+            background-color: rgba(142, 142, 147, 0.12);
+            border-radius: var(--border-radius-small);
+            outline: none;
         }
 
-        .memo-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .memo-body {
-            padding: 16px;
-        }
-
-        .memo-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            word-break: break-all;
-        }
-
-        .memo-text {
-            font-size: 15px;
-            line-height: 1.5;
-            color: #3a3a3c;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-
-        .memo-footer {
+        /* カウンター・管理 */
+        .meta-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 14px;
-            padding-top: 12px;
-            border-top: 1px solid #f2f2f7;
-        }
-
-        .memo-date {
-            font-size: 12px;
-            color: var(--text-sub);
-        }
-
-        .btn-delete {
-            background: none;
-            border: none;
-            color: var(--danger);
             font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            padding: 4px 8px;
+            color: var(--text-sub);
+            margin-bottom: 12px;
+            padding: 0 4px;
         }
 
-        /* フローティングアクションボタン (FAB) */
-        .fab {
-            position: fixed;
-            bottom: 32px;
-            right: 24px;
-            width: 60px;
-            height: 60px;
-            background-color: var(--primary);
-            color: white;
-            border-radius: 50%;
+        /* 図鑑グリッド (スマホで2列) */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        /* カードデザイン */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-large);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
             display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 32px;
-            font-weight: 300;
-            box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
-            border: none;
-            cursor: pointer;
-            z-index: 90;
-            transition: transform 0.1s ease;
+            flex-direction: column;
         }
-
-        .fab:active {
-            transform: scale(0.92);
+        .card:active {
+            transform: scale(0.98);
+            transition: transform 0.1s;
         }
-
-        /* モーダルシート（iOS風ボトムシート） */
-        .modal-overlay {
-            position: fixed;
+        .card-img-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 100%; /* 1:1 正方形 */
+            background-color: #e5e5ea;
+        }
+        .card img {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.4);
+            object-fit: cover;
+        }
+        .card-info {
+            padding: 10px;
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card-tag {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-top: 2px;
+        }
+
+        /* --- モーダル (共通) --- */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 200;
             display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            z-index: 1000;
+            align-items: flex-end; /* 下からスライドイン風 */
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease;
         }
-
-        .modal-overlay.active {
+        .modal.active {
             opacity: 1;
             pointer-events: auto;
         }
-
-        .modal-sheet {
-            background-color: var(--card-bg);
+        .modal-content {
             width: 100%;
-            max-width: 600px;
-            border-top-left-radius: var(--radius);
-            border-top-right-radius: var(--radius);
-            padding: 20px;
-            padding-bottom: max(20px, env(safe-area-inset-bottom));
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.15, 1, 0.3, 1);
-            max-height: 92vh;
+            background: var(--card-bg);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding: 20px 20px calc(20px + var(--safe-bottom)) 20px;
+            max-height: 85vh;
             overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
         }
-
-        .modal-overlay.active .modal-sheet {
+        .modal.active .modal-content {
             transform: translateY(0);
         }
-
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-
         .modal-title {
             font-size: 18px;
-            font-weight: 600;
+            font-weight: 700;
         }
 
+        /* --- フォームスタイル --- */
         .form-group {
             margin-bottom: 16px;
         }
-
-        /* iPhoneでのズームを防ぐためフォントサイズは16px以上に設定 */
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
         .form-control {
             width: 100%;
             padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
             font-size: 16px;
-            background-color: #text-sub;
-            background-color: #f2f2f7;
-            font-family: inherit;
+            border: 1px solid #e5e5ea;
+            border-radius: var(--border-radius-small);
+            background: #fafafa;
             outline: none;
-            -webkit-appearance: none;
         }
-
         .form-control:focus {
-            border-color: var(--primary);
-            background-color: #fff;
+            border-color: var(--accent-color);
         }
-
         textarea.form-control {
             resize: none;
-            height: 120px;
+            height: 100px;
         }
-
-        /* 画像選択エリア */
-        .image-uploader {
-            border: 2px dashed var(--border-color);
-            border-radius: 10px;
-            padding: 24px;
-            text-align: center;
-            cursor: pointer;
-            background-color: #f2f2f7;
+        
+        /* 画像選択プレビュー */
+        .image-picker {
+            width: 100%;
+            height: 180px;
+            border: 2px dashed #c7c7cc;
+            border-radius: var(--border-radius-small);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             position: relative;
-        }
-
-        .image-uploader span {
-            font-size: 14px;
-            color: var(--text-sub);
-        }
-
-        .image-uploader input[type="file"] {
-            display: none;
-        }
-
-        .upload-preview {
-            width: 100%;
-            margin-top: 12px;
-            border-radius: 8px;
-            max-height: 180px;
-            object-fit: cover;
-            display: none;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
+            overflow: hidden;
+            background: #f2f2f7;
             cursor: pointer;
-            margin-top: 8px;
+        }
+        .image-picker img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .image-picker span {
+            color: var(--text-sub);
+            font-size: 14px;
+            z-index: 1;
         }
 
-        .btn-submit:disabled {
-            background-color: var(--border-color);
-            cursor: not-allowed;
+        /* --- 詳細画面専用 --- */
+        .detail-img {
+            width: 100%;
+            border-radius: var(--border-radius-large);
+            object-fit: cover;
+            max-height: 300px;
+            margin-bottom: 16px;
+        }
+        .detail-tag {
+            display: inline-block;
+            background: #e5e5ea;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+        .detail-desc {
+            font-size: 16px;
+            color: #3a3a3c;
+            white-space: pre-wrap; /* 改行反映 */
+            margin-bottom: 24px;
         }
 
-        /* 空状態の表示 */
+        /* 空の状態 */
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 20px;
             color: var(--text-sub);
-        }
-
-        .empty-icon {
-            font-size: 48px;
-            margin-bottom: 12px;
-            display: block;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Photo Memo</h1>
-        <div class="header-actions">
-            <button class="btn-text" id="btn-import">読込</button>
-            <button class="btn-text" id="btn-export">保存</button>
-            <input type="file" id="file-import" accept=".json" style="display: none;">
+        <h1 onclick="scrollToTop()">📱 マイ図鑑</h1>
+        <div class="header-btns">
+            <button class="btn" onclick="openFormModal()">＋追加</button>
         </div>
     </header>
 
-    <main class="container">
-        <div id="memo-list" class="memo-grid">
+    <main>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="名前や特徴で検索..." oninput="renderList()">
+        </div>
+
+        <div class="meta-info">
+            <span id="itemCount">0 件のデータ</span>
+            <div>
+                <span style="cursor:pointer; color:var(--accent-color);" onclick="exportData()">書き出し</span>
+                <span style="color:#c7c7cc; margin:0 4px;">|</span>
+                <span style="cursor:pointer; color:var(--accent-color);" onclick="triggerImport()">読み込み</span>
+                <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
             </div>
+        </div>
+
+        <div id="gridList" class="grid"></div>
+        <div id="emptyState" class="empty-state" style="display:none;">
+            まだ登録がありません。<br>右上の「＋追加」から登録してみましょう！
+        </div>
     </main>
 
-    <button class="fab" id="btn-open-modal">＋</button>
-
-    <div class="modal-overlay" id="modal-overlay">
-        <div class="modal-sheet">
+    <div id="formModal" class="modal" onclick="closeModalForm(event)">
+        <div class="modal-content">
             <div class="modal-header">
-                <span class="modal-title">新しいメモ</span>
-                <button class="btn-text" id="btn-close-modal" style="color: var(--text-sub);">キャンセル</button>
+                <span class="modal-title" id="formTitle">新しいアイテム</span>
+                <button class="btn" onclick="closeModal('formModal')">キャンセル</button>
             </div>
-            
-            <form id="memo-form" onsubmit="event.preventDefault();">
-                <div class="form-group">
-                    <input type="text" id="memo-title" class="form-control" placeholder="タイトル（任意）" maxlength="50">
-                </div>
+            <form id="zukanForm" onsubmit="saveItem(event)">
+                <input type="hidden" id="itemId">
                 
                 <div class="form-group">
-                    <div class="image-uploader" id="uploader-zone">
-                        <span id="upload-placeholder">📸 タップして写真を選択 / 撮影</span>
-                        <input type="file" id="memo-file" accept="image/*">
-                        <img id="upload-preview" class="upload-preview" alt="Preview">
+                    <label>写真</label>
+                    <div class="image-picker" onclick="document.getElementById('fileInput').click()">
+                        <span id="pickerText">タップして写真を撮影・選択</span>
+                        <img id="previewImg" src="" style="display:none;">
                     </div>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="previewImage(event)">
                 </div>
 
                 <div class="form-group">
-                    <textarea id="memo-text" class="form-control" placeholder="ここにメモを入力してください..." required></textarea>
+                    <label>名前 / タイトル</label>
+                    <input type="text" id="itemTitle" class="form-control" placeholder="例: モンステラ" required>
                 </div>
 
-                <button type="button" id="btn-save" class="btn-submit">保存する</button>
+                <div class="form-group">
+                    <label>分類 / タグ</label>
+                    <input type="text" id="itemCategory" class="form-control" placeholder="例: 観葉植物">
+                </div>
+
+                <div class="form-group">
+                    <label>説明 / メモ</label>
+                    <textarea id="itemDesc" class="form-control" placeholder="特徴や出会った場所など..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:100%; padding:14px; font-size:16px; margin-top:10px;">保存する</button>
             </form>
         </div>
     </div>
 
+    <div id="detailModal" class="modal" onclick="closeModalDetail(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="detailTitleName">アイテム詳細</span>
+                <button class="btn" onclick="closeModal('detailModal')">閉じる</button>
+            </div>
+            
+            <img id="detailImg" class="detail-img" src="" alt="画像">
+            <div id="detailTag" class="detail-tag">タグなし</div>
+            <div id="detailDesc" class="detail-desc">ここに説明文が入ります。</div>
+            
+            <div style="display:flex; gap:10px;">
+                <button class="btn" style="flex:1; background:#f2f2f7;" id="editBtn">編集</button>
+                <button class="btn btn-danger" style="flex:1; background:rgba(255,59,48,0.1);" id="deleteBtn">削除</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // --- IndexedDB の設定 ---
-        const DB_NAME = 'PhotoMemoAppDB';
-        const STORE_NAME = 'memos';
+        // IndexedDBの設定
+        const DB_NAME = "ZukanAppDB";
+        const DB_VERSION = 1;
+        const STORE_NAME = "collections";
         let db = null;
+        let itemsData = []; // アプリ内メモリキャッシュ
+
+        // 初期起動処理
+        window.addEventListener('DOMContentLoaded', () => {
+            initDB();
+        });
 
         function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, 1);
-                request.onupgradeneeded = (e) => {
-                    const database = e.target.result;
-                    if (!database.objectStoreNames.contains(STORE_NAME)) {
-                        database.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-                    }
-                };
-                request.onsuccess = (e) => {
-                    db = e.target.result;
-                    resolve();
-                };
-                request.onerror = (e) => reject(e.target.error);
-            });
-        }
-
-        function getMemosFromDB() {
-            return new Promise((resolve) => {
-                const transaction = db.transaction([STORE_NAME], 'readonly');
-                const store = transaction.objectStore(STORE_NAME);
-                const request = store.getAll();
-                request.onsuccess = () => {
-                    // 新しい順（降順）にソートして返す
-                    resolve(request.result.reverse());
-                };
-            });
-        }
-
-        function addMemoToDB(memo) {
-            return new Promise((resolve) => {
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
-                const request = store.add(memo);
-                transaction.oncomplete = () => resolve(request.result);
-            });
-        }
-
-        function deleteMemoFromDB(id) {
-            return new Promise((resolve) => {
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
-                store.delete(id);
-                transaction.oncomplete = () => resolve();
-            });
-        }
-
-        function clearAndImportDB(memos) {
-            return new Promise((resolve) => {
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
-                store.clear();
-                memos.forEach(item => {
-                    delete item.id; // 新規IDを割り振るため削除
-                    store.add(item);
-                });
-                transaction.oncomplete = () => resolve();
-            });
-        }
-
-        // --- 画像の圧縮（リサイズ）処理 ---
-        function processImage(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 1200; // iPhone用として十分綺麗なサイズ
-                        let width = img.width;
-                        let height = img.height;
-
-                        if (width > MAX_WIDTH) {
-                            height = Math.round((height * MAX_WIDTH) / width);
-                            width = MAX_WIDTH;
-                        }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        // 画質を0.75に設定して容量を大幅カット
-                        resolve(canvas.toDataURL('image/jpeg', 0.75));
-                    };
-                    img.onerror = reject;
-                    img.src = e.target.result;
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // --- UI 操作 & アプリロジック ---
-        const modalOverlay = document.getElementById('modal-overlay');
-        const uploaderZone = document.getElementById('uploader-zone');
-        const memoFileInput = document.getElementById('memo-file');
-        const uploadPreview = document.getElementById('upload-preview');
-        const uploadPlaceholder = document.getElementById('upload-placeholder');
-        const memoList = document.getElementById('memo-list');
-        
-        let currentImageData = "";
-
-        // モーダル開閉
-        document.getElementById('btn-open-modal').addEventListener('click', () => {
-            modalOverlay.classList.add('active');
-        });
-
-        function closeModal() {
-            modalOverlay.classList.remove('active');
-            document.getElementById('memo-form').reset();
-            uploadPreview.style.display = 'none';
-            uploadPlaceholder.style.display = 'block';
-            currentImageData = "";
-        }
-        document.getElementById('btn-close-modal').addEventListener('click', closeModal);
-        
-        // 外側タップでモーダルを閉じる
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) closeModal();
-        });
-
-        // 画像アップロードトリガー
-        uploaderZone.addEventListener('click', () => memoFileInput.click());
-        memoFileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            uploadPlaceholder.textContent = "圧縮中...";
-            try {
-                currentImageData = await processImage(file);
-                uploadPreview.src = currentImageData;
-                uploadPreview.style.display = 'block';
-                uploadPlaceholder.style.display = 'none';
-            } catch (err) {
-                alert("画像の読み込みに失敗しました。");
-                uploadPlaceholder.textContent = "📸 タップして写真を選択 / 撮影";
-            }
-        });
-
-        // メモの描画処理
-        async function renderMemos() {
-            const memos = await getMemosFromDB();
-            memoList.innerHTML = '';
-
-            if (memos.length === 0) {
-                memoList.innerHTML = `
-                    <div class="empty-state">
-                        <span class="empty-icon">📝</span>
-                        <p>メモがありません。<br>右下のボタンから追加してください。</p>
-                    </div>
-                `;
-                return;
-            }
-
-            memos.forEach(memo => {
-                const card = document.createElement('div');
-                card.className = 'memo-card';
-                
-                let imageHTML = '';
-                if (memo.image) {
-                    imageHTML = `
-                        <div class="memo-image-container">
-                            <img class="memo-image" src="${memo.image}" alt="Memo Image" loading="lazy">
-                        </div>
-                    `;
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            
+            request.onupgradeneeded = (e) => {
+                const database = e.target.result;
+                if (!database.objectStoreNames.contains(STORE_NAME)) {
+                    database.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
                 }
-
-                const titleHTML = memo.title ? `<h2 class="memo-title">${escapeHTML(memo.title)}</h2>` : '';
-
-                card.innerHTML = `
-                    ${imageHTML}
-                    <div class="memo-body">
-                        ${titleHTML}
-                        <p class="memo-text">${escapeHTML(memo.text)}</p>
-                        <div class="memo-footer">
-                            <span class="memo-date">${memo.date}</span>
-                            <button class="btn-delete" onclick="handleDelete(${memo.id})">削除</button>
-                        </div>
-                    </div>
-                `;
-                memoList.appendChild(card);
-            });
-        }
-
-        // 保存処理
-        document.getElementById('btn-save').addEventListener('click', async () => {
-            const text = document.getElementById('memo-text').value.trim();
-            const title = document.getElementById('memo-title').value.trim();
-
-            if (!text) {
-                alert("メモ本文を入力してください。");
-                return;
-            }
-
-            const now = new Date();
-            const dateStr = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-            const newMemo = {
-                title: title,
-                text: text,
-                image: currentImageData,
-                date: dateStr
             };
 
-            await addMemoToDB(newMemo);
-            closeModal();
-            renderMemos();
-        });
+            request.onsuccess = (e) => {
+                db = e.target.result;
+                fetchItems();
+            };
 
-        // 削除処理
-        window.handleDelete = async (id) => {
-            if (confirm("このメモを削除してもよろしいですか？")) {
-                await deleteMemoFromDB(id);
-                renderMemos();
+            request.onerror = (e) => {
+                alert("データベースの初期化に失敗しました。シークレットブラウザ等の場合は保存できない事があります。");
+            };
+        }
+
+        // データの全取得
+        function fetchItems() {
+            const transaction = db.transaction([STORE_NAME], "readonly");
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                itemsData = request.result || [];
+                renderList();
+            };
+        }
+
+        // リストの描画処理（検索フィルター込み）
+        function renderList() {
+            const gridList = document.getElementById('gridList');
+            const emptyState = document.getElementById('emptyState');
+            const itemCount = document.getElementById('itemCount');
+            const searchKeyword = document.getElementById('searchInput').value.toLowerCase();
+
+            gridList.innerHTML = "";
+
+            // 検索キーワードでフィルタリング
+            const filtered = itemsData.filter(item => {
+                return item.title.toLowerCase().includes(searchKeyword) || 
+                       (item.category && item.category.toLowerCase().includes(searchKeyword)) ||
+                       (item.description && item.description.toLowerCase().includes(searchKeyword));
+            });
+
+            itemCount.textContent = `${filtered.length} 件のデータ`;
+
+            if (filtered.length === 0) {
+                emptyState.style.display = "block";
+                return;
             }
-        };
+            emptyState.style.display = "none";
 
-        // バックアップ（エクスポート）機能
-        document.getElementById('btn-export').addEventListener('click', async () => {
-            const memos = await getMemosFromDB();
-            if (memos.length === 0) {
+            // 新しい登録順（降順）で表示
+            filtered.sort((a,b) => b.id - a.id).forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openDetailModal(item.id);
+
+                // 画像がない場合のプレビュープレースホルダー
+                const imgSrc = item.image ? item.image : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23ccc"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12" fill="%23666">No Image</text></svg>';
+
+                card.innerHTML = `
+                    <div class="card-img-wrapper">
+                        <img src="${imgSrc}" alt="${item.title}" loading="lazy">
+                    </div>
+                    <div class="card-info">
+                        <div class="card-title">${escapeHtml(item.title)}</div>
+                        <div class="card-tag">${escapeHtml(item.category || '未分類')}</div>
+                    </div>
+                `;
+                gridList.appendChild(card);
+            });
+        }
+
+        // 画像選択時のプレビュー処理 (Base64に変換して容量圧縮して保持)
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // 画像サイズ調整用のCanvas処理（iPhoneの巨大な写真をそのまま入れると重くなるため）
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    // 長辺を最大1024pxに縮小
+                    const MAX_SIZE = 1024;
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // 圧縮されたBase64
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    const previewImg = document.getElementById('previewImg');
+                    const pickerText = document.getElementById('pickerText');
+                    previewImg.src = compressedBase64;
+                    previewImg.style.display = "block";
+                    pickerText.style.display = "none";
+                }
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 新規追加・編集データの保存
+        function saveItem(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('itemId').value;
+            const title = document.getElementById('itemTitle').value;
+            const category = document.getElementById('itemCategory').value;
+            const description = document.getElementById('itemDesc').value;
+            const image = document.getElementById('previewImg').style.display === "block" ? document.getElementById('previewImg').src : "";
+
+            const item = {
+                title: title,
+                category: category,
+                description: description,
+                image: image
+            };
+
+            const transaction = db.transaction([STORE_NAME], "readwrite");
+            const store = transaction.objectStore(STORE_NAME);
+
+            if (id) {
+                // 更新
+                item.id = Number(id);
+                store.put(item);
+            } else {
+                // 新規
+                store.add(item);
+            }
+
+            transaction.oncomplete = () => {
+                closeModal('formModal');
+                fetchItems();
+                document.getElementById('zukanForm').reset();
+                document.getElementById('previewImg').style.display = "none";
+                document.getElementById('pickerText').style.display = "block";
+            };
+        }
+
+        // 詳細画面を開く
+        function openDetailModal(id) {
+            const item = itemsData.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('detailTitleName').textContent = item.title;
+            document.getElementById('detailTag').textContent = item.category || '未分類';
+            document.getElementById('detailDesc').textContent = item.description || '説明はありません。';
+            
+            const detailImg = document.getElementById('detailImg');
+            if(item.image) {
+                detailImg.src = item.image;
+                detailImg.style.display = "block";
+            } else {
+                detailImg.style.display = "none";
+            }
+
+            // 編集ボタン・削除ボタンのイベント設定
+            document.getElementById('editBtn').onclick = () => openEditForm(item);
+            document.getElementById('deleteBtn').onclick = () => deleteItem(item.id);
+
+            openModal('detailModal');
+        }
+
+        // 編集フォームを開く
+        function openEditForm(item) {
+            closeModal('detailModal');
+            
+            document.getElementById('formTitle').textContent = "アイテムを編集";
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('itemTitle').value = item.title;
+            document.getElementById('itemCategory').value = item.category;
+            document.getElementById('itemDesc').value = item.description;
+
+            const previewImg = document.getElementById('previewImg');
+            const pickerText = document.getElementById('pickerText');
+            if (item.image) {
+                previewImg.src = item.image;
+                previewImg.style.display = "block";
+                pickerText.style.display = "none";
+            } else {
+                previewImg.style.display = "none";
+                pickerText.style.display = "block";
+            }
+
+            openModal('formModal');
+        }
+
+        // データの削除
+        function deleteItem(id) {
+            if (!confirm("本当にこのデータを削除しますか？")) return;
+
+            const transaction = db.transaction([STORE_NAME], "readwrite");
+            const store = transaction.objectStore(STORE_NAME);
+            store.delete(id);
+
+            transaction.oncomplete = () => {
+                closeModal('detailModal');
+                fetchItems();
+            };
+        }
+
+        /* --- UI補助関数 --- */
+        function openFormModal() {
+            document.getElementById('formTitle').textContent = "新しいアイテム";
+            document.getElementById('itemId').value = "";
+            document.getElementById('zukanForm').reset();
+            document.getElementById('previewImg').style.display = "none";
+            document.getElementById('pickerText').style.display = "block";
+            openModal('formModal');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function closeModalForm(e) { if(e.target.id === 'formModal') closeModal('formModal'); }
+        function closeModalDetail(e) { if(e.target.id === 'detailModal') closeModal('detailModal'); }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function escapeHtml(str) {
+            if(!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        /* --- バックアップ用データ書き出し・読み込み機能 --- */
+        function exportData() {
+            if (itemsData.length === 0) {
                 alert("エクスポートするデータがありません。");
                 return;
             }
-            const dataStr = JSON.stringify(memos, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
+            const dataStr = JSON.stringify(itemsData, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             
             const a = document.createElement('a');
             a.href = url;
-            a.download = `photo_memo_backup_${new Date().toISOString().slice(0,10)}.json`;
-            document.body.appendChild(a);
+            a.download = `my_zukan_backup_${new Date().toISOString().slice(0,10)}.json`;
             a.click();
-            document.body.removeChild(a);
             URL.revokeObjectURL(url);
-        });
+        }
 
-        // バックアップ（インポート）機能
-        const fileImport = document.getElementById('file-import');
-        document.getElementById('btn-import').addEventListener('click', () => fileImport.click());
-        fileImport.addEventListener('change', (e) => {
-            const file = e.target.files[0];
+        function triggerImport() {
+            document.getElementById('importFile').click();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = async (evt) => {
+            reader.onload = function(e) {
                 try {
-                    const memos = JSON.parse(evt.target.result);
-                    if (!Array.isArray(memos)) throw new Error();
-                    
-                    if (confirm("データを上書きインポートしますか？既存のアプリ内データは削除されます。")) {
-                        await clearAndImportDB(memos);
-                        renderMemos();
+                    const imported = JSON.parse(e.target.result);
+                    if (!Array.isArray(imported)) throw new Error();
+
+                    if (!confirm(`${imported.length}件のデータをインポートします。既存の重複データは上書き・追加されますが、よろしいですか？`)) return;
+
+                    const transaction = db.transaction([STORE_NAME], "readwrite");
+                    const store = transaction.objectStore(STORE_NAME);
+
+                    imported.forEach(item => {
+                        // バックアップファイルに既存のIDが含まれるためputで追加・上書き
+                        // 新規扱いにしたい場合は delete item.id してください。
+                        store.put(item);
+                    });
+
+                    transaction.oncomplete = () => {
                         alert("インポートが完了しました。");
-                    }
+                        fetchItems();
+                    };
                 } catch (err) {
-                    alert("正しいバックアップファイル（JSON）を選択してください。");
+                    alert("ファイルの形式が正しくありません。有効な図鑑のJSONファイルを選択してください。");
                 }
-                fileImport.value = ""; // リセット
             };
             reader.readAsText(file);
-        });
-
-        // XSS 対策のエスケープ関数
-        function escapeHTML(str) {
-            return str
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
         }
-
-        // アプリ起動時
-        window.addEventListener('DOMContentLoaded', async () => {
-            await initDB();
-            renderMemos();
-        });
     </script>
 </body>
 </html>
