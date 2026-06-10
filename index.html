@@ -277,15 +277,39 @@
             document.getElementById('effectToggleBtn').textContent = isOff ? "🎭演出: OFF" : "🎭演出: ON";
         }
 
-        // 📦 データをJSONファイルとしてダウンロード
+        // 📦 データをJSONファイルとしてダウンロード (画質を維持してBase64化)
         function exportData() {
             if (charData.length === 0) { alert("保存するデータがありません。"); return; }
-            const exportJson = charData.map(c => ({
-                ...c,
-                _restoredBlobs: undefined,
-                _cachedUrls: undefined,
-                histories: c.histories?.map(h => ({ ...h, _restoredBlob: undefined, _cachedUrl: undefined }))
-            }));
+            
+            const toBase64 = (buf) => {
+                if (!buf) return null;
+                let binary = '';
+                const bytes = new Uint8Array(buf);
+                for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+                return window.btoa(binary);
+            };
+
+            const exportJson = charData.map(c => {
+                const cloned = { ...c };
+                cloned._restoredBlobs = undefined;
+                cloned._cachedUrls = undefined;
+                if (cloned.images) {
+                    cloned.images = cloned.images.map(img => ({
+                        ...img,
+                        buffer: img.buffer ? toBase64(img.buffer) : null,
+                        isBase64: true
+                    }));
+                }
+                if (cloned.histories) {
+                    cloned.histories = cloned.histories.map(h => ({
+                        ...h,
+                        _restoredBlob: undefined,
+                        _cachedUrl: undefined,
+                        image: h.image ? { ...h.image, buffer: h.image.buffer ? toBase64(h.image.buffer) : null, isBase64: true } : null
+                    }));
+                }
+                return cloned;
+            });
 
             const blob = new Blob([JSON.stringify(exportJson)], { type: "application/json" });
             const url = URL.createObjectURL(blob);
@@ -295,15 +319,43 @@
             a.click();
         }
 
-        // 📂 ファイルからデータを復元
+        // 📂 ファイルからデータを復元 (Base64からバイナリへ戻す)
         function importData(e) {
             const file = e.target.files[0];
             if (!file) return;
             
+            const fromBase64 = (base64) => {
+                if (!base64) return null;
+                const binaryString = window.atob(base64);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+                return bytes.buffer;
+            };
+
             const reader = new FileReader();
             reader.onload = (event) => {
                 try {
                     const imported = JSON.parse(event.target.result);
+                    
+                    imported.forEach(c => {
+                        if (c.images) {
+                            c.images.forEach(img => {
+                                if (img.isBase64 && typeof img.buffer === 'string') {
+                                    img.buffer = fromBase64(img.buffer);
+                                    delete img.isBase64;
+                                }
+                            });
+                        }
+                        if (c.histories) {
+                            c.histories.forEach(h => {
+                                if (h.image && h.image.isBase64 && typeof h.image.buffer === 'string') {
+                                    h.image.buffer = fromBase64(h.image.buffer);
+                                    delete h.image.isBase64;
+                                }
+                            });
+                        }
+                    });
+
                     const transaction = db.transaction(STORE_NAME, "readwrite");
                     const store = transaction.objectStore(STORE_NAME);
                     store.clear();
@@ -507,7 +559,6 @@
             container.appendChild(row);
         }
 
-        // 👿 悪役フィールドの表示切替
         function toggleVillainField() {
             const isChecked = document.getElementById('isVillain').checked;
             document.getElementById('villainActionContainer').style.display = isChecked ? 'block' : 'none';
@@ -627,7 +678,6 @@
                 <div class="status-bar-bg"><div class="status-bar-fill" style="width:${s.val}%; background:${s.col}"></div></div>
             `).join('');
 
-            // 🔥 攻撃方法・戦法の表示
             let asHtml = '';
             if(c.attackMethod) asHtml += `<div style="margin-bottom:4px;"><span style="font-weight:800; color:var(--text-sub);">⚔️ 攻撃方法:</span> ${escapeHtml(c.attackMethod)}</div>`;
             if(c.battleStrategy) asHtml += `<div><span style="font-weight:800; color:var(--text-sub);">🛡️ 戦法:</span> ${escapeHtml(c.battleStrategy)}</div>`;
@@ -644,7 +694,6 @@
             }
             document.getElementById('detailSkillsWeaknesses').innerHTML = swHtml;
 
-            // 👿 悪役の行為の表示
             const vaContainer = document.getElementById('detailVillainAction');
             if(c.isVillain && c.villainAction) {
                 vaContainer.innerHTML = `<div style="background:#ffebee; border:1px solid #ffcdd2; padding:12px; border-radius:12px;">
