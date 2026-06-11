@@ -145,19 +145,22 @@
                 </div>
 
                 <div class="form-group">
-                    <label>ステータス (ATK / DEF / SPD / INT)</label>
+                    <label>ステータス (ATK / DEF / SPD / 戦闘IQ)</label>
                     <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;">
                         <input type="number" id="statAtk" class="form-control" placeholder="ATK" value="50" max="100">
                         <input type="number" id="statDef" class="form-control" placeholder="DEF" value="50" max="100">
                         <input type="number" id="statSpd" class="form-control" placeholder="SPD" value="50" max="100">
-                        <input type="number" id="statInt" class="form-control" placeholder="INT" value="50" max="100">
+                        <input type="number" id="statInt" class="form-control" placeholder="戦闘IQ" value="50" max="100">
                     </div>
                 </div>
 
                 <div class="form-group" style="margin-top:20px; background:#fafafa; padding:12px; border-radius:12px; border:1px solid #e5e5ea;">
                     <div class="form-group">
-                        <label>⚔️ 攻撃方法</label>
-                        <input type="text" id="attackMethod" class="form-control" placeholder="例: 物理打撃、遠隔魔法など">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <label style="margin:0;">⚔️ 攻撃方法（複数追加可）</label>
+                            <button type="button" class="btn btn-primary" style="padding:4px 10px; font-size:12px;" onclick="addAttackMethodRow()">＋追加</button>
+                        </div>
+                        <div id="formAttackMethodsContainer"></div>
                     </div>
                     <div class="form-group">
                         <label>🛡️ 戦法</label>
@@ -489,6 +492,14 @@
             });
         }
 
+        function addAttackMethodRow(val = '') {
+            const container = document.getElementById('formAttackMethodsContainer');
+            const row = document.createElement('div');
+            row.className = 'dynamic-row attack-method-row';
+            row.innerHTML = `<input type="text" class="form-control attack-method-input" placeholder="例: 物理打撃、遠隔魔法など" value="${escapeHtml(val)}"><button type="button" class="btn btn-danger" onclick="this.parentElement.remove()" style="padding:0 12px;">✕</button>`;
+            container.appendChild(row);
+        }
+
         function addSkillRow(val = '') {
             const container = document.getElementById('formSkillsContainer');
             const row = document.createElement('div');
@@ -580,7 +591,7 @@
                 submitBtn.textContent = "高画質で保存中...";
                 submitBtn.disabled = true;
 
-                const attackMethod = document.getElementById('attackMethod').value.trim();
+                const attackMethods = Array.from(document.querySelectorAll('.attack-method-input')).map(input => input.value.trim()).filter(v => v);
                 const battleStrategy = document.getElementById('battleStrategy').value.trim();
                 const isVillain = document.getElementById('isVillain').checked;
                 const villainAction = document.getElementById('villainAction').value.trim();
@@ -615,7 +626,7 @@
                     def: Number(document.getElementById('statDef').value) || 50,
                     spd: Number(document.getElementById('statSpd').value) || 50,
                     int: Number(document.getElementById('statInt').value) || 50,
-                    attackMethod: attackMethod,
+                    attackMethods: attackMethods,
                     battleStrategy: battleStrategy,
                     skills: skills,
                     weaknesses: weaknesses,
@@ -671,7 +682,7 @@
                 {label: 'ATK', val: c.atk, col: 'var(--color-atk)'},
                 {label: 'DEF', val: c.def, col: 'var(--color-def)'},
                 {label: 'SPD', val: c.spd, col: 'var(--color-spd)'},
-                {label: 'INT', val: c.int, col: 'var(--color-int)'}
+                {label: '戦闘IQ', val: c.int, col: 'var(--color-int)'}
             ];
             document.getElementById('detailStatsBox').innerHTML = stats.map(s => `
                 <div style="font-size:12px; font-weight:800; display:flex; justify-content:space-between; margin-top:4px;"><span>${s.label}</span><span>${s.val}</span></div>
@@ -679,7 +690,11 @@
             `).join('');
 
             let asHtml = '';
-            if(c.attackMethod) asHtml += `<div style="margin-bottom:4px;"><span style="font-weight:800; color:var(--text-sub);">⚔️ 攻撃方法:</span> ${escapeHtml(c.attackMethod)}</div>`;
+            if(c.attackMethods && c.attackMethods.length > 0) {
+                asHtml += `<div style="margin-bottom:4px;"><span style="font-weight:800; color:var(--text-sub);">⚔️ 攻撃方法:</span> ${c.attackMethods.map(escapeHtml).join('、')}</div>`;
+            } else if(c.attackMethod) {
+                asHtml += `<div style="margin-bottom:4px;"><span style="font-weight:800; color:var(--text-sub);">⚔️ 攻撃方法:</span> ${escapeHtml(c.attackMethod)}</div>`;
+            }
             if(c.battleStrategy) asHtml += `<div><span style="font-weight:800; color:var(--text-sub);">🛡️ 戦法:</span> ${escapeHtml(c.battleStrategy)}</div>`;
             document.getElementById('detailAttackStrategy').innerHTML = asHtml;
 
@@ -759,11 +774,19 @@
             document.getElementById('statSpd').value = c.spd;
             document.getElementById('statInt').value = c.int;
 
-            document.getElementById('attackMethod').value = c.attackMethod || '';
             document.getElementById('battleStrategy').value = c.battleStrategy || '';
             document.getElementById('isVillain').checked = !!c.isVillain;
             document.getElementById('villainAction').value = c.villainAction || '';
             toggleVillainField();
+
+            document.getElementById('formAttackMethodsContainer').innerHTML = '';
+            if(c.attackMethods && c.attackMethods.length > 0) {
+                c.attackMethods.forEach(a => addAttackMethodRow(a));
+            } else if(c.attackMethod) {
+                addAttackMethodRow(c.attackMethod);
+            } else {
+                addAttackMethodRow();
+            }
 
             document.getElementById('formSkillsContainer').innerHTML = '';
             if(c.skills) c.skills.forEach(s => addSkillRow(s));
@@ -792,11 +815,13 @@
             document.getElementById('statSpd').value = 50;
             document.getElementById('statInt').value = 50;
             
-            document.getElementById('attackMethod').value = "";
             document.getElementById('battleStrategy').value = "";
             document.getElementById('isVillain').checked = false;
             document.getElementById('villainAction').value = "";
             toggleVillainField();
+
+            document.getElementById('formAttackMethodsContainer').innerHTML = '';
+            addAttackMethodRow();
 
             document.getElementById('formSkillsContainer').innerHTML = '';
             document.getElementById('formWeaknessesContainer').innerHTML = '';
