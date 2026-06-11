@@ -65,6 +65,7 @@
         .form-control { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #e5e5ea; border-radius: var(--border-radius-small); background: #fafafa; outline: none; }
         
         .dynamic-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .attack-method-tag { display: inline-block; background: var(--color-atk); color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-right: 6px; margin-bottom: 6px; }
         .skill-tag { display: inline-block; background: var(--color-cool); color: #000; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-right: 6px; margin-bottom: 6px; }
         .weakness-tag { display: inline-block; background: #3a3a3c; color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-right: 6px; margin-bottom: 6px; }
 
@@ -691,9 +692,11 @@
 
             let asHtml = '';
             if(c.attackMethods && c.attackMethods.length > 0) {
-                asHtml += `<div style="margin-bottom:4px;"><span style="font-weight:800; color:var(--text-sub);">⚔️ 攻撃方法:</span> ${c.attackMethods.map(escapeHtml).join('、')}</div>`;
+                asHtml += `<div style="margin-bottom:12px;"><div style="font-size:13px; font-weight:800; margin-bottom:6px;">⚔️ 攻撃方法</div>` + 
+                          c.attackMethods.map(a => `<span class="attack-method-tag">${escapeHtml(a)}</span>`).join('') + `</div>`;
             } else if(c.attackMethod) {
-                asHtml += `<div style="margin-bottom:4px;"><span style="font-weight:800; color:var(--text-sub);">⚔️ 攻撃方法:</span> ${escapeHtml(c.attackMethod)}</div>`;
+                asHtml += `<div style="margin-bottom:12px;"><div style="font-size:13px; font-weight:800; margin-bottom:6px;">⚔️ 攻撃方法</div>` + 
+                          `<span class="attack-method-tag">${escapeHtml(c.attackMethod)}</span></div>`;
             }
             if(c.battleStrategy) asHtml += `<div><span style="font-weight:800; color:var(--text-sub);">🛡️ 戦法:</span> ${escapeHtml(c.battleStrategy)}</div>`;
             document.getElementById('detailAttackStrategy').innerHTML = asHtml;
