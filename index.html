@@ -451,8 +451,8 @@
 
         <div class="select-box">
             <h3>1. 操作陣営を選択</h3>
-            <button class="btn btn-heroine" onclick="selectSide('heroine')">雲霄の掌門・儀玄</button>
-            <button class="btn btn-enemy" onclick="selectSide('enemy')">汚染の鉄顎・マッドタール</button>
+            <button class="btn btn-heroine" onclick="selectSide('heroine')">雲霄の掌門・儀玄 (NORMAL)</button>
+            <button class="btn btn-enemy" onclick="selectSide('enemy')">汚染の鉄顎・マッドタール (HARD)</button>
         </div>
 
         <div id="forecast-area" style="display:none;">
@@ -670,10 +670,10 @@ function selectSide(side) {
 
     if (side === 'heroine') {
         diffBadge.innerHTML = `<span style="background:#30d158; color:#fff; font-size:0.75rem; padding:2px 6px; border-radius:3px; font-weight:bold;">NORMAL</span>`;
-        forecastText.innerText = "儀玄は高いATKと回避力を持つが、マッドタールの「汚染」によるSPD低下・ATK/DEF低下と「拘束」による回避不能状態には警戒が必要。敵は攻撃を避けるごとに狙いを研ぎ澄ましてくるため長期戦は不利。敵の弱点である「100以上のダメージを与えた際の肉体硬化（DEF低下）」を狙い、大技を一気に叩き込む戦術が求められる。";
+        forecastText.innerText = "儀玄は高いATKと回避力を持つが、マッドタールの「汚染」によるSPD・ATK・DEF低下および【汚染時の与ダメージ1/2化】、さらに「拘束」による回避不能状態には警戒が必要。敵は攻撃を避けるごとに狙いを研ぎ澄ましてくるため長期戦は不利。敵の弱点である「100以上のダメージを与えた際の肉体硬化（DEF低下）」を狙い、大技を一気に叩き込む戦術が求められる。";
     } else {
         diffBadge.innerHTML = `<span style="background:#a55cca; color:#fff; font-size:0.75rem; padding:2px 6px; border-radius:3px; font-weight:bold;">HARD</span>`;
-        forecastText.innerText = "圧倒的な回避力を持つ儀玄に対して、マッドタールの「牽制待ち戦法」が活きる。回避されるごとに命中力と防御力が上限なく上昇するため、焦らずに機をうかがえ。一度でも拘束できれば相手の回避は不可能となり、大量のタール汚染を浴びせるチャンス。衣服を汚染し尽くし、誇り高き掌門を絶望の底に沈めろ。";
+        forecastText.innerText = "圧倒的な回避力を持つ儀玄に対して、マッドタールの「牽制待ち戦法」が活きる。回避されるごとに命中力と防御力が上限なく上昇するため、焦らずに機をうかがえ。一度でも汚染すれば相手の各種ステータスだけでなく【与えるダメージを1/2に抑え込む】ことが可能。拘束と汚染を重ね、誇り高き掌門を絶望の底に沈めろ。";
     }
 }
 
@@ -978,6 +978,13 @@ function executeCardEffect(attackerSide, card) {
     if (damage < 1) damage = 1;
     if (isCrit) damage = Math.floor(damage * 1.5);
 
+    // ★儀玄の弱点要素：汚染状態のとき与えるダメージが1/2になる
+    if (isHeroineAttacking && heroine.current.pollutionValue > 0) {
+        damage = Math.floor(damage / 2);
+        if (damage < 1) damage = 1;
+        log(`⚠️ 【汚染の影響】汚染状態のため、儀玄の与えるダメージが1/2に半減！`, 'warning');
+    }
+
     defender.current.hp -= damage;
     if (defender.current.hp < 0) defender.current.hp = 0;
 
@@ -1023,7 +1030,7 @@ function executeCardEffect(attackerSide, card) {
     if (!isHeroineAttacking) {
         if (card.pollute > 0) {
             heroine.current.pollutionValue += card.pollute;
-            log(`⚠️ 【汚染】粘液が絡みつき、儀玄の汚染度が ${card.pollute} 上昇！（現在: ${heroine.current.pollutionValue}） SPD・ATK・DEFが低下していく…！`, 'warning');
+            log(`⚠️ 【汚染】粘液が絡みつき、儀玄の汚染度が ${card.pollute} 上昇！（現在: ${heroine.current.pollutionValue}） SPD・ATK・DEF低下＆与ダメージ1/2！`, 'warning');
             log(`儀玄: 「ああっ、服が、肌が…！ 泥に塗れて…術の循環が乱される…！」`, 'text');
             heroine.current.state = "屈辱";
         }
@@ -1244,7 +1251,7 @@ function updateUI() {
     }
 
     if (heroine.current.pollutionValue > 0) {
-        pollMarker.innerHTML = `<span class="debuff-badge">⚠️ 汚染度: ${heroine.current.pollutionValue} (SPD・ATK・DEF低下)</span>`;
+        pollMarker.innerHTML = `<span class="debuff-badge">⚠️ 汚染度: ${heroine.current.pollutionValue} (SPD・ATK・DEF低下 / 与ダメ1/2)</span>`;
         pollMarkerLine.style.display = 'block';
         fPanel.style.display = 'flex'; 
 
@@ -1315,17 +1322,12 @@ function log(text, type) {
     const entry = document.createElement('div');
     entry.className = `log-entry log-${type}`;
     
-    // UI表示用にはそのままHTMLとして入れる（修飾などが入っているため）
-    // ログコピー用のテキスト化処理ではタグを除去するためにDOM機能を使う
     let htmlContent = text;
 
-    // 前回の修飾付きHTML指定を外し、テキストベースでのシンプルな見た目に統一する
-    // （変数へプレーンテキストとして正しく格納するため）
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = text;
     let plainText = tempDiv.textContent || tempDiv.innerText || "";
 
-    // 修飾タグが含まれている場合も、UI上はそのまま見せる
     if (type === 'heroine-outer' || type === 'heroine-inner' || type === 'enemy-speech' || type === 'system' || type === 'warning') {
         entry.innerHTML = htmlContent;
     } else {
@@ -1333,13 +1335,10 @@ function log(text, type) {
     }
     
     logArea.appendChild(entry);
-    // ログが追加されたら一番下まで自動スクロールする
     logArea.scrollTop = logArea.scrollHeight; 
 
-    // コピー用の変数にプレーンテキストを保存
     storedFullLog += plainText + "\n";
     
-    // アクションログ用フィルタリング
     if (plainText.includes('の行動：') || plainText.includes('のダメージ！') || plainText.includes('攻撃を鮮やかに回避した！') || plainText.includes('MISS')) {
         storedActionLog += plainText + "\n";
     }
